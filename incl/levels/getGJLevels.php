@@ -16,7 +16,7 @@ $echoString = $userString = $songsString = $queryJoin = '';
 $levelsStatsArray = $epicParams = [];
 $order = "uploadDate";
 $orderSorting = "DESC";
-$orderEnabled = $isIDSearch = false;
+$orderEnabled = $isIDSearch = $noLimit = false;
 $filters = ["(unlisted = 0 AND unlisted2 = 0)"];
 
 $str = Escape::text($_POST["str"]) ?: '';
@@ -188,6 +188,8 @@ switch($type) {
 				unlisted != 1 OR
 				(unlisted = 1 AND (extID IN (".$friendsString.")))
 			)";
+			
+		$noLimit = true;
 		break;
 	case 11: // Awarded
 		$filters[] = "NOT starStars = 0";
@@ -227,6 +229,7 @@ switch($type) {
 				unlisted != 1 OR
 				(unlisted = 1 AND (extID IN (".$friendsString.")))
 			)"];
+		$noLimit = true;
 		break;
 	case 27: // Sent levels
 		$queryJoin = "JOIN (SELECT suggestLevelId AS levelID, MAX(suggest.timestamp) AS timestamp FROM suggest GROUP BY levelID) suggest ON levels.levelID = suggest.levelID";
@@ -236,7 +239,7 @@ switch($type) {
 		break;
 }
 
-$levels = Library::getLevels($filters, $order, $orderSorting, $queryJoin, $pageOffset);
+$levels = Library::getLevels($filters, $order, $orderSorting, $queryJoin, $pageOffset, $noLimit);
 
 foreach($levels['levels'] as &$level) {
 	if(empty($level["levelID"])) continue;

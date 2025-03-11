@@ -25,9 +25,6 @@ class Security {
 			case 2:
 				if(!password_verify($key, $account["gjp2"])) return ["success" => false, "error" => LoginError::WrongCredentials, "accountID" => (string)$accountID, "IP" => $IP];
 				break;
-			case 3:
-				if(empty(trim($key)) || $key != $account["auth"]) return ["success" => false, "error" => LoginError::WrongCredentials, "accountID" => (string)$accountID, "IP" => $IP];
-				break;
 		}		
 		if($account["isActive"] == "0") return ["success" => false, "error" => LoginError::AccountIsNotActivated, "accountID" => (string)$accountID, "IP" => $IP];
 		
@@ -111,10 +108,6 @@ class Security {
 				$key = !isset($_POST['gjp']) ? $_POST['password'] : XORCipher::cipher(Escape::url_base64_decode($_POST['gjp']), 37526);
 				$type = 1;
 				break;
-			case isset($_POST['auth']):
-				$key = $_POST['auth'];
-				$type = 3;
-				break;
 			default:
 				return false;
 		}
@@ -130,7 +123,17 @@ class Security {
 		
 		$IP = IP::getIP();
 		
-		if(self::isTooManyAttempts()) return ["success" => false, "error" => LoginError::WrongCredentials, "accountID" => (string)Escape::number($_POST['accountID']), "IP" => $IP];
+		if(self::isTooManyAttempts()) {
+			$logPerson = [
+				'accountID' => (string)Escape::number($_POST['accountID']),
+				'userID' => (string)Library::getUserID(Escape::number($_POST['accountID'])),
+				'userName' => '',
+				'IP' => $IP
+			];
+			
+			Library::logAction($logPerson, Action::FailedLogin);
+			return ["success" => false, "error" => LoginError::WrongCredentials, "accountID" => (string)Escape::number($_POST['accountID']), "IP" => $IP];
+		}
 		
 		switch(true) {
 			case !empty($_POST['uuid']) && (!empty($_POST['password']) || !empty($_POST['gjp']) || !empty($_POST['gjp2']) || !empty($_POST['auth'])):
@@ -312,6 +315,7 @@ class Security {
 	}
 	
 	public static function isTooManyAttempts() {
+		require __DIR__."/../../config/security.php";
 		require_once __DIR__."/mainLib.php";
 		require_once __DIR__."/ip.php";
 		require_once __DIR__."/enums.php";
@@ -327,7 +331,7 @@ class Security {
 		
 		$failedLogins = Library::getPersonActions($searchPerson, $filters);
 		
-		return count($failedLogins) > 4;
+		return count($failedLogins) > $maxLoginTries;
 	}
 }
 ?>

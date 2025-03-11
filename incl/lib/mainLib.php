@@ -1405,10 +1405,10 @@ class Library {
 		return ["success" => true, "levelID" => (string)$levelID];
 	}
 	
-	public static function getLevels($filters, $order, $orderSorting, $queryJoin, $pageOffset) {
+	public static function getLevels($filters, $order, $orderSorting, $queryJoin, $pageOffset, $noLimit = false) {
 		require __DIR__."/connection.php";
 		
-		$levels = $db->prepare("SELECT * FROM levels ".$queryJoin." WHERE (".implode(") AND (", $filters).") AND isDeleted = 0 ".($order ? "ORDER BY ".$order." ".$orderSorting : "")." LIMIT 10 OFFSET ".$pageOffset);
+		$levels = $db->prepare("SELECT * FROM levels ".$queryJoin." WHERE (".implode(") AND (", $filters).") AND isDeleted = 0 ".($order ? "ORDER BY ".$order." ".$orderSorting : "")." ".(!$noLimit ? "LIMIT 10 OFFSET ".$pageOffset : ''));
 		$levels->execute();
 		$levels = $levels->fetchAll();
 		

@@ -54,7 +54,7 @@ $CaptchaSecret = "";
 	Syntax: $proxies['NAME OF IPs'] = 'LINK';
 */
 
-$blockFreeProxies = true; // true = check if person uses free proxy
+$blockFreeProxies = false; // true = check if person uses free proxy
 $blockCommonVPNs = false; // true = check if person uses a common VPN
 // URLs for IPs of proxies
 $proxies['http'] = 'https://fhgdps.com/proxies/http.txt';
@@ -67,6 +67,12 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 
 /*
 	GDPS automod config
+	
+	
+	-- SECURITY --
+	
+	
+	$maxLoginTries — maximum amount of login tries per hour
 	
 	
 	-- ANTI-SPAM --
@@ -127,6 +133,8 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 	$bannedCommon — list of banned words in common things
 	$whitelistedCommon — list of whitelisted words in common things
 */
+
+$maxLoginTries = 4;
 
 $warningsPeriod = 302400;
 

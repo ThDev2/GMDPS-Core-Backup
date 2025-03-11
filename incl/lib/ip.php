@@ -5,12 +5,7 @@ class IP {
 		return ipInRange::ipv4_in_range($ip, $range);
 	}
 	
-	public static function ip2long6($ip) {
-		require_once __DIR__ . "/ip_in_range.php";
-		return ipInRange::ip2long6($ip, $range);
-	}
-	
-	public static function ipv6_in_range($ip, $range_ip) {
+	public function ipv6_in_range($ip, $range_ip) {
 		require_once __DIR__ . "/ip_in_range.php";
 		return ipInRange::ipv6_in_range($ip, $range_ip);
 	}

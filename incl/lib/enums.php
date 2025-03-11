@@ -207,4 +207,8 @@ class Color {
 	const Gold = "s";
 	const Undefined = "";
 }
+
+class DashboardError {
+	const AlreadyLoggedIn = "errorAlreadyLoggedIn";
+}
 ?>
