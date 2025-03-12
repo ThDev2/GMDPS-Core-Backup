@@ -187,7 +187,10 @@ class Security {
 			Library::logAction($logPerson, Action::FailedLogin);
 			return ["success" => false, "error" => $loginToAccount['error'], "accountID" => $accountID];
 		}
-		return ["success" => true, "accountID" => $loginToAccount['accountID'], "userID" => $loginToAccount['userID'], "userName" => $loginToAccount["userName"], "IP" => $loginToAccount['IP']];
+		
+		$auth = self::getAuthToken($accountID);
+		
+		return ["success" => true, "accountID" => $loginToAccount['accountID'], "userID" => $loginToAccount['userID'], "userName" => $loginToAccount["userName"], "IP" => $loginToAccount['IP'], 'auth' => $auth];
 	}
 	
 	public static function updateLastPlayed($userID) {
@@ -332,6 +335,29 @@ class Security {
 		$failedLogins = Library::getPersonActions($searchPerson, $filters);
 		
 		return count($failedLogins) > $maxLoginTries;
+	}
+	
+	public static function getAuthToken($accountID) {
+		require_once __DIR__."/mainLib.php";
+		
+		$account = Library::getAccountByID($accountID);
+		$auth = $account['auth'];
+		
+		if(empty($auth)) $auth = self::assignAuthToken($accountID);
+			
+		return $auth;
+	}
+	
+	public static function assignAuthToken($accountID) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/mainLib.php";
+		
+		$auth = Library::randomString(16);
+		
+		$assignAuthToken = $db->prepare("UPDATE accounts SET auth = :auth WHERE accountID = :accountID");
+		$assignAuthToken->execute([':auth' => $auth, ':accountID' => $accountID]);
+		
+		return true;
 	}
 }
 ?>

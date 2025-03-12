@@ -5,9 +5,13 @@
 		<meta charset="utf-8">
 		<meta name="color-scheme" content="dark">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit='no'">
+		<link rel="icon" href="%DASHBOARD_FAVICON%">
 		<link async rel="stylesheet" href="incl/style.css?%STYLE_TIMESTAMP%">
 		<link async rel="stylesheet" href="incl/icons/css/all.min.css">
-		<script async src="incl/script.js"></script>
+		<link async rel="stylesheet" href="incl/toast/toast.css">
+		<script type="text/javascript"> const dbPath = "%DATABASE_PATH%"; </script>
+		<script async src="incl/script.js" type="text/javascript"></script>
+		<script async src="incl/toast/toast.js" type="text/javascript"></script>
 	</head>
 	<body id="dashboard-body">
 		<div id="dashboard-loader" class="dashboard-loader">
@@ -21,14 +25,14 @@
 					<text title="Скрыть навбар">Скрыть навбар</text>
 				</button>
 				
-				<button type="button" href="./">
+				<button type="button" href="">
 					<i class="fa-solid fa-house"></i>
 					<text title="Домой">Домой</text>
 				</button>
 			</div>
 			
 			<div class="navbar-buttons">
-				<button type="button" href="./account/login">
+				<button type="button" href="account/login">
 					<i class="fa-solid fa-sign-in"></i>
 					<text title="Домой">Войти в аккаунт</text>
 				</button>

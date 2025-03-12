@@ -8,7 +8,6 @@
 */
 $dbPath = '../';
 
-require __DIR__."/../".$dbPath."config/dashboard.php";
 require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 
 class Dashboard {
@@ -73,17 +72,20 @@ class Dashboard {
 	*/
 	
 	public static function renderTemplate($template, $pageTitle, $pageBase, $dataArray) {
+		global $dbPath;
+		require __DIR__."/../".$dbPath."config/dashboard.php";
+		
 		if(!file_exists(__DIR__."/templates/main.html") || !file_exists(__DIR__."/templates/".$template.".html") || !is_array($dataArray)) return false;
 		
 		$templatePage = file_get_contents(__DIR__."/templates/".$template.".html");
 		
-		foreach($dataArray AS $key => $value) {
-			$templatePage = str_replace("%".$key."%", $value, $templatePage);
-		}
+		if(!empty($dataArray)) foreach($dataArray AS $key => $value) $templatePage = str_replace("%".$key."%", $value, $templatePage);
 		
 		$mainPageData = [
 			'PAGE_TITLE' => $pageTitle,
 			'PAGE_BASE' => $pageBase,
+			'DASHBOARD_FAVICON' => $dashboardFavicon,
+			'DATABASE_PATH' => $dbPath,
 			'STYLE_TIMESTAMP' => filemtime(__DIR__."/style.css"),
 			'PAGE' => $templatePage,
 			'FOOTER' => ""
@@ -91,27 +93,42 @@ class Dashboard {
 		
 		$page = file_get_contents(__DIR__."/templates/main.html");
 		
-		foreach($mainPageData AS $key => $value) {
-			$page = str_replace("%".$key."%", $value, $page);
-		}
+		foreach($mainPageData AS $key => $value) $page = str_replace("%".$key."%", $value, $page);
 		
 		return $page;
 	}
 	
 	public static function renderErrorPage($error) {
-		$pageTitle = "Главная • GreenCatsServer";
+		global $dbPath;
+		require __DIR__."/../".$dbPath."config/dashboard.php";
+		$pageTitle = $error." • ".$gdps;
 		$pageBase = "../";
 		
 		$dataArray = [
 			'INFO_TITLE' => 'Произошла ошибка',
 			'INFO_DESCRIPTION' => $error,
-			'INFO_BUTTON' => 'Вернуться назад',
-			'INFO_BUTTON_ONCLICK' => "goToPage('./')"
+			'INFO_BUTTON_TEXT' => 'Вернуться назад',
+			'INFO_BUTTON_ONCLICK' => "getPage('')"
 		];
 		
 		$page = self::renderTemplate("general/info", $pageTitle, $pageBase, $dataArray);
 		
 		return $page;
+	}
+	
+	public static function renderPage($template, $title, $base, $dataArray) {
+		global $dbPath;
+		require __DIR__."/../".$dbPath."config/dashboard.php";
+		$pageTitle = $title." • ".$gdps;
+		$pageBase = $base;
+		
+		$page = self::renderTemplate($template, $pageTitle, $pageBase, $dataArray);
+		
+		return $page;
+	}
+	
+	public static function renderToast($icon, $text, $state, $location = '') {
+		return "<div id='toast' state='".$state."' location='".$location."'><i class='fa-solid fa-".$icon."'></i>".$text."</div>";
 	}
 }
 ?>

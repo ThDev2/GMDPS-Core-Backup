@@ -157,7 +157,7 @@ body.hide nav button text {
 .dashboard-page {
 	width: 100%;
 	
-	margin-left: 240px;
+	margin-left: 340px;
 	
 	display: flex;
 	
@@ -186,6 +186,8 @@ body.hide .dashboard-page {
 	grid-gap: 15px;
 	
 	width: max-content;
+	
+	min-width: 30%;
 }
 
 .box button {
@@ -240,4 +242,76 @@ body.hide .dashboard-page {
 	opacity: 0;
 	
 	pointer-events: none;
+}
+
+form {
+	display: contents;
+	width: 100%;
+}
+
+.inputStyle {
+	padding: 10px;
+	background-color: #D9D9D914;
+	color: #c0c0c0;
+	
+	border: none;
+	border-radius: 10px;
+	
+	font-size: 20px;
+	
+	outline: none;
+	
+	transition: 0.2s;
+}
+
+.inputDiv {
+	display: flex;
+	flex-direction: column;
+	grid-gap: 10px;
+	width: 100%;
+}
+
+.inputDiv h2 {
+	font-size: 25px;
+	margin: 0px;
+	display: flex;
+	align-items: baseline;
+	grid-gap: 5px;
+}
+
+form.empty-fields .inputStyle:placeholder-shown {
+    border: 2px solid #c93636;
+}
+
+.toastify {
+	position: absolute;
+	width: max-content;
+	height: max-content;
+	
+	left: 50%;
+	
+	font-size: 20px;
+	
+	border-radius: 500px !important;
+	
+	box-shadow: none !important;
+	background: #D9D9D914 !important;
+	
+	transition: 0.2s !important;
+	
+	backdrop-filter: blur(5px);
+	
+	display: flex !important;
+	align-items: baseline;
+	gap: 5px;
+}
+
+.toastify.success {
+	border: 1px solid #529252c2;
+	background: #3fa1255c !important;
+}
+
+.toastify.error {
+	border: 1px solid #925252c2;
+	background: #a125255c !important;
 }

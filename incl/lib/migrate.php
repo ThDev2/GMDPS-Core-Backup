@@ -486,6 +486,13 @@ if(!$installed) {
 	$check = $db->query("SHOW COLUMNS FROM `comments` LIKE 'creatorRating'");
 		$exist = $check->fetchAll();
 		if(empty($exist)) $db->query("ALTER TABLE `comments` ADD `creatorRating` INT NOT NULL DEFAULT '0' AFTER `isSpam`");
+	$check = $db->query("SELECT count(*) FROM `accounts` WHERE auth = 'none'");
+		$exist = $check->fetchColumn();
+		if($exist) $db->query("UPDATE accounts SET auth = '' WHERE auth = 'none'");
+	$check = $db->query("SELECT count(*) FROM `accounts` WHERE mail = 'none' OR mail = 'activated'");
+		$exist = $check->fetchColumn();
+		if($exist) $db->query("UPDATE accounts SET mail = '' WHERE mail = 'none' OR mail = 'activated'");
+	
 	$lines = file(__DIR__.'/../../config/dashboard.php');
 	$first_line = $lines[2];
 	$lines = array_slice($lines, 1 + 2);
