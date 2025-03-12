@@ -85,9 +85,8 @@ class Dashboard {
 			'PAGE_TITLE' => $pageTitle,
 			'PAGE_BASE' => $pageBase,
 			'STYLE_TIMESTAMP' => filemtime(__DIR__."/style.css"),
-			'NAVBAR' => ".",
 			'PAGE' => $templatePage,
-			'FOOTER' => "."
+			'FOOTER' => ""
 		];
 		
 		$page = file_get_contents(__DIR__."/templates/main.html");
@@ -103,9 +102,14 @@ class Dashboard {
 		$pageTitle = "Главная • GreenCatsServer";
 		$pageBase = "../";
 		
-		$dataArray = ['TEST' => 'GreenCatsServer123123'];
+		$dataArray = [
+			'INFO_TITLE' => 'Произошла ошибка',
+			'INFO_DESCRIPTION' => $error,
+			'INFO_BUTTON' => 'Вернуться назад',
+			'INFO_BUTTON_ONCLICK' => "goToPage('./')"
+		];
 		
-		$page = self::renderTemplate("account/login", $pageTitle, $pageBase, $dataArray);
+		$page = self::renderTemplate("general/info", $pageTitle, $pageBase, $dataArray);
 		
 		return $page;
 	}

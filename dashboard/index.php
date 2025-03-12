@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__."/incl/dashboardLib.php";
+require_once __DIR__."/".$dbPath."incl/lib/enums.php";
 
 $person = Dashboard::loginDashboardUser();
-var_dump($person);
+// For testing
+if(!$person['success']) exit(Dashboard::renderErrorPage(DashboardError::TestError));
 ?>

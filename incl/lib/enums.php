@@ -210,5 +210,6 @@ class Color {
 
 class DashboardError {
 	const AlreadyLoggedIn = "errorAlreadyLoggedIn";
+	const TestError = "errorTestError";
 }
 ?>
