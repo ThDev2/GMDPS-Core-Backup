@@ -9,7 +9,10 @@
 		<link async rel="stylesheet" href="incl/style.css?%STYLE_TIMESTAMP%">
 		<link async rel="stylesheet" href="incl/icons/css/all.min.css">
 		<link async rel="stylesheet" href="incl/toast/toast.css">
-		<script type="text/javascript"> const dbPath = "%DATABASE_PATH%"; </script>
+		<script type="text/javascript">
+			const dbPath = "%DATABASE_PATH%";
+			const failedToLoadText = "%FAILED_TO_LOAD_TEXT%";
+		</script>
 		<script async src="incl/script.js" type="text/javascript"></script>
 		<script async src="incl/toast/toast.js" type="text/javascript"></script>
 	</head>
@@ -19,22 +22,95 @@
 		</div>
 	
 		<nav>
-			<div class="navbar-buttons">
-				<button type="button" onclick="toggleNavbar()">
+			<div class="navbar-buttons down">
+				<button title="Скрыть навбар" type="button" onclick="toggleNavbar()">
 					<i class="fa-solid fa-bars"></i>
-					<text title="Скрыть навбар">Скрыть навбар</text>
+					<text>Скрыть навбар</text>
 				</button>
 				
-				<button type="button" href="">
+				<button title="Домой" type="button" href="">
 					<i class="fa-solid fa-house"></i>
-					<text title="Домой">Домой</text>
+					<text>Домой</text>
 				</button>
+				
+				<div class="dropdown" id="accountDropdown" dashboard-show="%IS_LOGGED_IN%">
+					<button title="Аккаунт" type="button" dashboard-dropdown="accountDropdown">
+						<i class="fa-solid fa-user"></i>
+						<text>Аккаунт (X)</text>
+						<i class="fa-solid fa-caret-right navbar-hide" dashboard-dropdown-caret></i>
+					</button>
+					<div class="dropdown-items">
+						<button title="Сменить никнейм" type="button" href="account/changeUsername">
+							<i class="fa-solid fa-circle-user"></i>
+							<text>Сменить никнейм (X)</text>
+						</button>
+						
+						<button title="Сменить пароль" type="button" href="account/changePassword">
+							<i class="fa-solid fa-key"></i>
+							<text>Сменить пароль (X)</text>
+						</button>
+						
+						<button title="Ваши уровни" type="button" href="account/levels">
+							<i class="fa-solid fa-gamepad"></i>
+							<text>Ваши уровни (X)</text>
+						</button>
+						
+						<button title="Ваши списки уровней" type="button" href="account/lists">
+							<i class="fa-solid fa-list"></i>
+							<text>Ваши списки уровней (X)</text>
+						</button>
+						
+						<button title="Ваши песни" type="button" href="account/songs">
+							<i class="fa-solid fa-music"></i>
+							<text>Ваши песни (X)</text>
+						</button>
+						
+						<button title="Любимые песни" type="button" href="account/favouriteSongs">
+							<i class="fa-solid fa-heart"></i>
+							<text>Любимые песни (X)</text>
+						</button>
+						
+						<button title="Ваши звуковые эффекты" type="button" href="account/sfxs">
+							<i class="fa-solid fa-drum"></i>
+							<text>Ваши звуковые эффекты (X)</text>
+						</button>
+					</div>
+				</div>
 			</div>
 			
-			<div class="navbar-buttons">
-				<button type="button" href="account/login">
+			<div class="navbar-buttons up">
+				<button title="Войти в аккаунт" dashboard-hide="%IS_LOGGED_IN%" type="button" href="account/login">
 					<i class="fa-solid fa-sign-in"></i>
-					<text title="Домой">Войти в аккаунт</text>
+					<text>Войти в аккаунт</text>
+				</button>
+				
+				<button title="Мессенджер" type="button" href="messenger" dashboard-show="%IS_LOGGED_IN%">
+					<i class="fa-solid fa-comments"></i>
+					<text>Мессенджер (X)</text>
+				</button>
+				
+				<div class="dropdown" id="profileDropdown" dashboard-show="%IS_LOGGED_IN%">
+					<button title="%USERNAME%" type="button" dashboard-dropdown="profileDropdown">
+						<img src="%PROFILE_ICON%"></img>
+						<text>%USERNAME%</text>
+						<i class="fa-solid fa-caret-right navbar-hide" dashboard-dropdown-caret></i>
+					</button>
+					<div class="dropdown-items">
+						<button title="Ваш профиль" type="button" href="profile/%USERNAME%">
+							<i class="fa-solid fa-user"></i>
+							<text>Ваш профиль (X)</text>
+						</button>
+						
+						<button title="Выйти из аккаунта" type="button" href="account/logout">
+							<i class="fa-solid fa-sign-out"></i>
+							<text>Выйти из аккаунта</text>
+						</button>
+					</div>
+				</div>
+				
+				<button title="Настройки" type="button" href="settings">
+					<i class="fa-solid fa-gear"></i>
+					<text>Настройки (X)</text>
 				</button>
 			</div>
 		</nav>

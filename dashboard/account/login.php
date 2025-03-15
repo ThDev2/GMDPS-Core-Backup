@@ -24,7 +24,7 @@ $dataArray = [
 	'LOGIN_USERNAME_TEXT' => 'Никнейм',
 	'LOGIN_PASSWORD_TEXT' => 'Пароль',
 	'LOGIN_BUTTON_TEXT' => 'Войти в аккаунт',
-	'LOGIN_BUTTON_ONCLICK' => "postToast('account/login', 'loginForm')"
+	'LOGIN_BUTTON_ONCLICK' => "postPage('account/login', 'loginForm')"
 ];
 
 exit(Dashboard::renderPage("account/login", "Войти в аккаунт", "../", $dataArray));

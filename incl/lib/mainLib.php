@@ -1297,6 +1297,98 @@ class Library {
 		return true;
 	}
 	
+	public static function getPermissions() {
+		return [
+			'commandRate',
+			'commandFeature',
+			'commandEpic',
+			'commandVerifycoins',
+			'commandDaily',
+			'commandWeekly',
+			'commandEvent',
+			'commandSuggest',
+			'commandDelete',
+			'commandSetacc',
+			'commandRename',
+			'commandPass',
+			'commandDescription',
+			'commandPublic',
+			'commandSharecp',
+			'commandSong',
+			'commandLockComments',
+			'commandLockUpdating',
+			'actionRateDemon',
+			'actionRateStars',
+			'actionRateDifficulty',
+			'actionSuggestRating',
+			'actionDeleteComment',
+			'dashboardGauntletCreate',
+			'dashboardModTools',
+			'dashboardLevelPackCreate',
+			'dashboardManageSongs',
+			'dashboardAddMod',
+			'dashboardForceChangePassNick',
+			'dashboardDeleteLeaderboards',
+			'dashboardManageLevels',
+			'dashboardManageAutomod',
+			'dashboardVaultCodesManage'
+		];
+	}
+	
+	public static function getPersonPermissions($person) {
+		if(isset($GLOBALS['core_cache']['allPermissions'][$person['accountID']])) return $GLOBALS['core_cache']['allPermissions'][$person['accountID']];
+		
+		$allPermissions = self::getPermissions();
+		$personPermissions = [];
+		
+		if($person['accountID'] == 0 || $person['userID'] == 0) {
+			foreach($allPermissions AS &$permission) $personPermissions[$permission] = false;
+			
+			$GLOBALS['core_cache']['allPermissions'][$person['accountID']] = $personPermissions;
+			
+			return $personPermissions;
+		}
+		
+		$isAdmin = self::isAccountAdministrator($person['accountID']);
+		if($isAdmin) {
+			foreach($allPermissions AS &$permission) $personPermissions[$permission] = true;
+			
+			$GLOBALS['core_cache']['allPermissions'][$person['accountID']] = $personPermissions;
+			
+			return $personPermissions;
+		}
+		
+		$getRoles = self::getPersonRoles($person);
+		if(!$getRoles) {
+			foreach($allPermissions AS &$permission) $personPermissions[$permission] = false;
+			
+			$GLOBALS['core_cache']['allPermissions'][$person['accountID']] = $personPermissions;
+			
+			return $personPermissions;
+		}
+		
+		foreach($getRoles AS &$role) {
+			foreach($allPermissions AS &$permission) {
+				if(isset($personPermissions[$permission])) continue;
+				
+				switch($role[$permission]) {
+					case 1:
+						$personPermissions[$permission] = true;
+						break;
+					case 2:
+						$personPermissions[$permission] = false;
+						break;
+				}	
+			}
+		}
+		
+		foreach($allPermissions AS &$permission) if(!isset($personPermissions[$permission])) $personPermissions[$permission] = false;
+		
+		$GLOBALS['core_cache']['allPermissions'][$person['accountID']] = $personPermissions;
+		
+		return $personPermissions;
+	}
+	
 	/*
 		Levels-related functions
 	*/

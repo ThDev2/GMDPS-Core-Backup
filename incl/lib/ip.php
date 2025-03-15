@@ -1,16 +1,16 @@
 <?php
 class IP {
-	public function ipv4inrange($ip, $range) {
+	public static function ipv4inrange($ip, $range) {
 		require_once __DIR__ . "/ip_in_range.php";
 		return ipInRange::ipv4_in_range($ip, $range);
 	}
 	
-	public function ipv6_in_range($ip, $range_ip) {
+	public static function ipv6_in_range($ip, $range_ip) {
 		require_once __DIR__ . "/ip_in_range.php";
 		return ipInRange::ipv6_in_range($ip, $range_ip);
 	}
 	
-	public function isCloudFlareIP($ip) {
+	public static function isCloudFlareIP($ip) {
 		$cf_ipv4s = array(
 			'173.245.48.0/20',
 			'103.21.244.0/22',
@@ -38,12 +38,12 @@ class IP {
 			'2c0f:f248::/32'
 		);
 		foreach($cf_ipv4s as $cf_ip) {
-			if($this->ipv4inrange($ip, $cf_ip)) {
+			if(self::ipv4inrange($ip, $cf_ip)) {
 				return true;
 			}
 		}
 		foreach($cf_ipv6s as $cf_ip) {
-			if($this->ipv6_in_range($ip, $cf_ip)) {
+			if(self::ipv6_in_range($ip, $cf_ip)) {
 				return true;
 			}
 		}
@@ -54,12 +54,12 @@ class IP {
 		/*
 			Cloudflare reverse proxy
 		*/
-		if(isset($_SERVER['HTTP_CF_CONNECTING_IP']) && $this->isCloudFlareIP($_SERVER['REMOTE_ADDR'])) return $_SERVER['HTTP_CF_CONNECTING_IP'];
+		if(isset($_SERVER['HTTP_CF_CONNECTING_IP']) && self::isCloudFlareIP($_SERVER['REMOTE_ADDR'])) return $_SERVER['HTTP_CF_CONNECTING_IP'];
 		
 		/*
 			Localhost reverse proxy (mostly 7m.pl)
 		*/
-		if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $this->ipv4inrange($_SERVER['REMOTE_ADDR'], '127.0.0.0/8')) return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && self::ipv4inrange($_SERVER['REMOTE_ADDR'], '127.0.0.0/8')) return $_SERVER['HTTP_X_FORWARDED_FOR'];
 		
 		/*
 			141412.xyz support
@@ -129,7 +129,7 @@ class IP {
 		else $allVPNs = explode(PHP_EOL, $allVPNs);
 		
 		foreach($allVPNs AS &$vpnCheck) {
-			if($this->ipv4inrange(self::getIP(), $vpnCheck)) {
+			if(self::ipv4inrange(self::getIP(), $vpnCheck)) {
 				http_response_code(404);
 				exit;
 			}

@@ -11,7 +11,7 @@ window.addEventListener('load', () => {
 	if(localStorage.navbar_state == 'true') dashboardBody.classList.add("hide");
 	else dashboardBody.classList.remove("hide");
 	
-	registerNavbarButtons();
+	updateNavbar();
 	
 	window.addEventListener("popstate", (e) => getPage(e.target.location.pathname, true));
 	
@@ -33,7 +33,7 @@ async function getPage(href, skipCheck = false) {
 	const pageRequest = await fetch(href);
 	const response = await pageRequest.text();
 	
-	await changePage(response, href, skipCheck);
+	await changePage(response, href);
 	
 	dashboardLoader.classList.add("hide");
 	
@@ -71,9 +71,26 @@ async function postPage(href, form) {
 function changePage(response, href, skipCheck = false) {
 	newPageBody = new DOMParser().parseFromString(response, "text/html");
 	
-	if(!skipCheck) history.pushState(null, null, href);
+	const newPage = newPageBody.getElementById("dashboard-page");
+	
+	if(newPage == null) {
+		const toastBody = newPageBody.getElementById("toast");
+		if(toastBody != null) return showToast(toastBody);
+		
+		Toastify({
+			text: failedToLoadText,
+			duration: 2000,
+			position: "center",
+			escapeMarkup: false,
+			className: 'error',
+		}).showToast();
+		
+		return;
+	}
 
-	document.getElementById("dashboard-page").replaceWith(newPageBody.getElementById("dashboard-page"));
+	if(!skipCheck) history.pushState(null, null, href);
+	
+	document.getElementById("dashboard-page").replaceWith(newPage);
 	document.querySelector("base").replaceWith(newPageBody.querySelector("base"));
 	document.querySelector("title").replaceWith(newPageBody.querySelector("title"));
 	document.querySelector("nav").replaceWith(newPageBody.querySelector("nav"));
@@ -81,14 +98,19 @@ function changePage(response, href, skipCheck = false) {
 	dashboardBody = document.getElementById("dashboard-body");
 	dashboardBase = document.querySelector("base");
 	
-	registerNavbarButtons();
+	updateNavbar();
 }
 
-function registerNavbarButtons() {
-	const navbarButtons = document.querySelectorAll("nav button[href]");
+function updateNavbar() {
+	const navbarButtons = document.querySelectorAll("nav button");
+	
 	navbarButtons.forEach(navbarButton => {
-		navbarButton.addEventListener("mouseup", (event) => {
-			const href = event.target.getAttribute("href");
+		const href = navbarButton.getAttribute("href");
+		const dropdown = navbarButton.getAttribute("dashboard-dropdown");
+		
+		if(href != null || dropdown != null) navbarButton.addEventListener("mouseup", (event) => {
+			if(dropdown != null) return toggleDropdown(dropdown);
+			
 			switch(event.button) {
 				case 0:
 					getPage(href);
@@ -102,33 +124,16 @@ function registerNavbarButtons() {
 			}
 		});
 	});
+	
+	for(const element of document.querySelectorAll("[dashboard-hide=true]")) element.remove();
+	for(const element of document.querySelectorAll("[dashboard-show=false]")) element.remove();
 }
 
-async function postToast(href, form) {
-	const formElement = document.querySelector("form[name=" + form + "]");
-	const formData = new FormData(formElement);
-	const formEntries = formData.entries();
-	
-	for(const entry of formEntries) {
-		const isOptional = formElement.querySelector("input[dashboard-not-required][name=" + entry[0] + "]");
-		if(!entry[1].trim().length && isOptional == null) {
-			formElement.classList.add("empty-fields");
-			return false;
-		}
-	}
+function toggleDropdown(dropdown) {
+	document.getElementById(dropdown).classList.toggle("show");
+}
 
-	dashboardLoader.classList.remove("hide");
-	
-	const pageRequest = await fetch(href, {
-		method: "POST",
-		body: formData
-	});
-	const response = await pageRequest.text();
-	
-	const toastBody = new DOMParser().parseFromString(response, "text/html").getElementById("toast");
-	
-	if(toastBody == 'null') return changePage(response, response.href);
-	
+function showToast(toastBody) {
 	Toastify({
 		text: toastBody.innerHTML,
 		duration: 2000,
@@ -140,5 +145,4 @@ async function postToast(href, form) {
 	const toastLocation = toastBody.getAttribute("location");
 	
 	if(toastLocation.length) getPage(toastLocation);
-	else dashboardLoader.classList.add("hide");
 }
