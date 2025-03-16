@@ -23,101 +23,124 @@
 	
 		<nav>
 			<div class="navbar-buttons down">
-				<button title="Скрыть навбар" type="button" onclick="toggleNavbar()">
+				<button title="%TEXT_hidePanel%" type="button" onclick="toggleNavbar()">
 					<i class="fa-solid fa-bars"></i>
-					<text>Скрыть навбар</text>
+					<text>%TEXT_hidePanel%</text>
 				</button>
 				
-				<button title="Домой" type="button" href="">
+				<button title="%TEXT_home%" type="button" href="">
 					<i class="fa-solid fa-house"></i>
-					<text>Домой</text>
+					<text>%TEXT_home%</text>
 				</button>
 				
 				<div class="dropdown" id="accountDropdown" dashboard-show="%IS_LOGGED_IN%">
-					<button title="Аккаунт" type="button" dashboard-dropdown="accountDropdown">
+					<button title="%TEXT_account%" type="button" dashboard-dropdown="accountDropdown">
 						<i class="fa-solid fa-user"></i>
-						<text>Аккаунт (X)</text>
+						<text>%TEXT_account% (X)</text>
 						<i class="fa-solid fa-caret-right navbar-hide" dashboard-dropdown-caret></i>
 					</button>
 					<div class="dropdown-items">
-						<button title="Сменить никнейм" type="button" href="account/changeUsername">
+						<button title="%TEXT_changeUsernameTitle%" type="button" href="account/changeUsername">
 							<i class="fa-solid fa-circle-user"></i>
-							<text>Сменить никнейм (X)</text>
+							<text>%TEXT_changeUsernameTitle%</text>
 						</button>
 						
-						<button title="Сменить пароль" type="button" href="account/changePassword">
+						<button title="%TEXT_changePasswordTitle%" type="button" href="account/changePassword">
 							<i class="fa-solid fa-key"></i>
-							<text>Сменить пароль (X)</text>
+							<text>%TEXT_changePasswordTitle% (X)</text>
 						</button>
 						
-						<button title="Ваши уровни" type="button" href="account/levels">
+						<button title="%TEXT_yourLevelsTitle%" type="button" href="account/levels">
 							<i class="fa-solid fa-gamepad"></i>
-							<text>Ваши уровни (X)</text>
+							<text>%TEXT_yourLevelsTitle% (X)</text>
 						</button>
 						
-						<button title="Ваши списки уровней" type="button" href="account/lists">
+						<button title="%TEXT_yourListsTitle%" type="button" href="account/lists">
 							<i class="fa-solid fa-list"></i>
-							<text>Ваши списки уровней (X)</text>
+							<text>%TEXT_yourListsTitle% (X)</text>
 						</button>
 						
-						<button title="Ваши песни" type="button" href="account/songs">
+						<button title="%TEXT_yourSongsTitle%" type="button" href="account/songs">
 							<i class="fa-solid fa-music"></i>
-							<text>Ваши песни (X)</text>
+							<text>%TEXT_yourSongsTitle% (X)</text>
 						</button>
 						
-						<button title="Любимые песни" type="button" href="account/favouriteSongs">
+						<button title="%TEXT_favouriteSongsTitle%" type="button" href="account/favouriteSongs">
 							<i class="fa-solid fa-heart"></i>
-							<text>Любимые песни (X)</text>
+							<text>%TEXT_favouriteSongsTitle% (X)</text>
 						</button>
 						
-						<button title="Ваши звуковые эффекты" type="button" href="account/sfxs">
+						<button title="%TEXT_yourSFXsTitle%" type="button" href="account/sfxs">
 							<i class="fa-solid fa-drum"></i>
-							<text>Ваши звуковые эффекты (X)</text>
+							<text>%TEXT_yourSFXsTitle% (X)</text>
 						</button>
 					</div>
 				</div>
 			</div>
 			
 			<div class="navbar-buttons up">
-				<button title="Войти в аккаунт" dashboard-hide="%IS_LOGGED_IN%" type="button" href="account/login">
-					<i class="fa-solid fa-sign-in"></i>
-					<text>Войти в аккаунт</text>
-				</button>
-				
-				<button title="Мессенджер" type="button" href="messenger" dashboard-show="%IS_LOGGED_IN%">
+				<button title="%TEXT_messengerTitle%" type="button" href="messenger" dashboard-show="%IS_LOGGED_IN%">
 					<i class="fa-solid fa-comments"></i>
-					<text>Мессенджер (X)</text>
+					<text>%TEXT_messengerTitle% (X)</text>
 				</button>
 				
-				<div class="dropdown" id="profileDropdown" dashboard-show="%IS_LOGGED_IN%">
-					<button title="%USERNAME%" type="button" dashboard-dropdown="profileDropdown">
+				<div class="dropdown" id="profileLoggedOutDropdown" dashboard-hide="%IS_LOGGED_IN%">
+					<button title="%TEXT_profile%" type="button" dashboard-dropdown="profileLoggedOutDropdown">
+						<i class="fa-solid fa-user"></i>
+						<text>%TEXT_profile%</text>
+						<i class="fa-solid fa-caret-right navbar-hide" dashboard-dropdown-caret></i>
+					</button>
+					<div class="dropdown-items">
+						<button title="%TEXT_settings%" type="button" href="settings">
+							<i class="fa-solid fa-gear"></i>
+							<text>%TEXT_settings% (X)</text>
+						</button>
+						
+						<button title="%TEXT_loginToAccountTitle%" dashboard-hide="%IS_LOGGED_IN%" type="button" href="account/login">
+							<i class="fa-solid fa-sign-in"></i>
+							<text>%TEXT_loginToAccountTitle%</text>
+						</button>
+					</div>
+				</div>
+				
+				<div class="dropdown" id="profileLoggedInDropdown" dashboard-show="%IS_LOGGED_IN%">
+					<button title="%USERNAME%" type="button" dashboard-dropdown="profileLoggedInDropdown">
 						<img src="%PROFILE_ICON%"></img>
 						<text>%USERNAME%</text>
 						<i class="fa-solid fa-caret-right navbar-hide" dashboard-dropdown-caret></i>
 					</button>
 					<div class="dropdown-items">
-						<button title="Ваш профиль" type="button" href="profile/%USERNAME%">
+						<button title="%TEXT_yourProfileTitle%" type="button" href="profile/%USERNAME%">
 							<i class="fa-solid fa-user"></i>
-							<text>Ваш профиль (X)</text>
+							<text>%TEXT_yourProfileTitle% (X)</text>
 						</button>
 						
-						<button title="Выйти из аккаунта" type="button" href="account/logout">
+						<button title="%TEXT_settings%" type="button" href="settings">
+							<i class="fa-solid fa-gear"></i>
+							<text>%TEXT_settings% (X)</text>
+						</button>
+						
+						<button title="%TEXT_logoutFromAccountTitle%" type="button" href="account/logout">
 							<i class="fa-solid fa-sign-out"></i>
-							<text>Выйти из аккаунта</text>
+							<text>%TEXT_logoutFromAccountTitle%</text>
 						</button>
 					</div>
 				</div>
-				
-				<button title="Настройки" type="button" href="settings">
-					<i class="fa-solid fa-gear"></i>
-					<text>Настройки (X)</text>
-				</button>
 			</div>
 		</nav>
 		
 		<div id="dashboard-page" class="dashboard-page">
 			%PAGE%
 			<footer>%FOOTER%</footer>
+		</div>
+		
+		<div class="circles">
+			<div class="circle red" style='--position-delay: -1s'></div>
+			<div class="circle green" style='--position-delay: -5s'></div>
+			<div class="circle blue" style='--position-delay: -9s'></div>
+			<div class="circle red" style='--position-delay: -14s'></div>
+			<div class="circle green" style='--position-delay: -19s'></div>
+			<div class="circle blue" style='--position-delay: -24s'></div>
 		</div>
 	</body>
 </html>

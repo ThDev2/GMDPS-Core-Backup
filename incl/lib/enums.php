@@ -86,6 +86,7 @@ class Action {
 	
 	const ProfileStatsChange = 9;
 	const ProfileSettingsChange = 27;
+	const UsernameChange = 47;
 	
 	const SuccessfulAccountSync = 10;
 	const FailedAccountSync = 11;
@@ -206,10 +207,5 @@ class Color {
 	const SkyBlue = "f";
 	const Gold = "s";
 	const Undefined = "";
-}
-
-class DashboardError {
-	const AlreadyLoggedIn = "errorAlreadyLoggedIn";
-	const TestError = "errorTestError";
 }
 ?>

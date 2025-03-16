@@ -8,5 +8,5 @@ $sec = new Security();
 
 setcookie('auth', '', 2147483647, '/');
 
-exit(Dashboard::renderToast("check", "Вы успешно вышли из аккаунта!", "success", "./"));
+exit(Dashboard::renderToast("check", Dashboard::string("successLoggedOut"), "success", "./"));
 ?>

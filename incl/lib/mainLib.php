@@ -1389,6 +1389,28 @@ class Library {
 		return $personPermissions;
 	}
 	
+	public static function changeUsername($person, $targetUserName) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/security.php";
+		
+		$accountID = $person['accountID'];
+		$userName = $person['userName'];
+		
+		if(strlen($targetUserName) > 20 || strlen($targetUserName) < 3 || is_numeric($targetUserName) || empty($targetUserName) || $targetUserName == $userName || self::stringViolatesFilter($targetUserName, 0)) return false;
+		
+		$changeAccountUsername = $db->prepare("UPDATE accounts SET userName = :userName WHERE accountID = :accountID");
+		$changeAccountUsername->execute([':userName' => $targetUserName, ':accountID' => $accountID]);
+		
+		$changeUserUsername = $db->prepare("UPDATE users SET userName = :userName WHERE extID = :accountID");
+		$changeUserUsername->execute([':userName' => $targetUserName, ':accountID' => $accountID]);
+		
+		Security::assignAuthToken($accountID);
+		
+		self::logAction($person, Action::UsernameChange, $userName, $targetUserName);
+		
+		return true;
+	}
+	
 	/*
 		Levels-related functions
 	*/

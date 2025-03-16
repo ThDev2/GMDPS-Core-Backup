@@ -143,6 +143,5 @@ function showToast(toastBody) {
 	}).showToast();
 	
 	const toastLocation = toastBody.getAttribute("location");
-	
 	if(toastLocation.length) getPage(toastLocation);
 }

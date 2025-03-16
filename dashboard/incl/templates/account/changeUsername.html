@@ -1,13 +1,21 @@
 <div class="box">
-	<h1>%TEXT_loginToAccountTitle%</h1>
-	<p>%TEXT_loginToAccountDesc%</p>
-	<form name="loginForm" autocomplete="gdps-dashboard">
+	<h1>%TEXT_changeUsernameTitle%</h1>
+	<p>%TEXT_changeUsernameDesc%</p>
+	<form name="changeUsernameForm" autocomplete="gdps-dashboard">
 		<div class="inputDiv">
 			<h2>
 				<i class="fa-solid fa-user"></i>
-				%TEXT_userName%
+				%TEXT_changeUsernameOld%
 			</h2>
 			<input class="inputStyle" type="text" name="userName" autocomplete="gdps-dashboard-username" placeholder="YourVeryPrettyUsername" />
+		</div>
+		
+		<div class="inputDiv">
+			<h2>
+				<i class="fa-solid fa-user-plus"></i>
+				%TEXT_changeUsernameNew%
+			</h2>
+			<input class="inputStyle" type="text" name="targetUserName" autocomplete="off" placeholder="YourNewVeryPrettyUsername" />
 		</div>
 		
 		<div class="inputDiv">
@@ -18,6 +26,6 @@
 			<input class="inputStyle" type="password" name="password" autocomplete="gdps-dashboard-password" placeholder="•••••••••••••" />
 		</div>
 		
-		<button type="button" onclick="%LOGIN_BUTTON_ONCLICK%">%TEXT_loginToAccountButton%</button>
+		<button type="button" onclick="%CHANGE_USERNAME_BUTTON_ONCLICK%">%TEXT_changeUsernameTitle%</button>
 	</form>
 </div>

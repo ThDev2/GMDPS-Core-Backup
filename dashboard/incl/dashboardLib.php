@@ -45,7 +45,7 @@ class Dashboard {
 				'IP' => $IP
 			];
 			
-			$_COOKIE['auth'] = '';
+			setcookie('auth', '', 2147483647, '/');
 
 			Library::logAction($logPerson, Action::FailedLogin);
 			
@@ -66,7 +66,7 @@ class Dashboard {
 				'IP' => $IP
 			];
 			
-			$_COOKIE['auth'] = '';
+			setcookie('auth', '', 2147483647, '/');
 
 			Library::logAction($logPerson, Action::FailedLogin);
 			
@@ -101,17 +101,22 @@ class Dashboard {
 			'PAGE_BASE' => $pageBase,
 			'DASHBOARD_FAVICON' => $dashboardFavicon,
 			'DATABASE_PATH' => $dbPath,
-			'FAILED_TO_LOAD_TEXT' => "<i class='fa-solid fa-xmark'></i>Не удалось загрузить страницу!",
+			'FAILED_TO_LOAD_TEXT' => "<i class='fa-solid fa-xmark'></i>".self::string("errorFailedToLoadPage"),
 			'STYLE_TIMESTAMP' => filemtime(__DIR__."/style.css"),
+			
 			'IS_LOGGED_IN' => $person['success'] ? 'true' : 'false',
 			'USERNAME' => $person['success'] ? $person['userName'] : '',
 			'PROFILE_ICON' => $person['success'] ? 'https://icons.gcs.icu/icon.png?type=cube&value=379&color1=0&color2=3' : '',
+			
 			'PAGE' => $templatePage,
 			'FOOTER' => ""
 		];
 		
 		$personPermissions = Library::getPersonPermissions($person);
 		foreach($personPermissions AS $permission => $value) $mainPageData['PERMISSION_'.$permission] = $value ? 'true' : 'false';
+		
+		$allStrings = self::allStrings();
+		foreach($allStrings AS $string => $value) $mainPageData['TEXT_'.$string] = $value;
 		
 		$page = file_get_contents(__DIR__."/templates/main.html");
 		
@@ -130,9 +135,9 @@ class Dashboard {
 		$pageBase = "../";
 		
 		$dataArray = [
-			'INFO_TITLE' => 'Произошла ошибка',
+			'INFO_TITLE' => self::string("errorTitle"),
 			'INFO_DESCRIPTION' => $error,
-			'INFO_BUTTON_TEXT' => 'Вернуться назад',
+			'INFO_BUTTON_TEXT' => self::string("home"),
 			'INFO_BUTTON_ONCLICK' => "getPage('')"
 		];
 		
@@ -154,6 +159,36 @@ class Dashboard {
 	
 	public static function renderToast($icon, $text, $state, $location = '') {
 		return "<div id='toast' state='".$state."' location='".$location."'><i class='fa-solid fa-".$icon."'></i>".$text."</div>";
+	}
+	
+	public static function string($languageString) {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/exploitPatch.php";
+		
+		if(isset($GLOBALS['core_cache']['dashboard']['language'][$languageString])) return $GLOBALS['core_cache']['dashboard']['language'][$languageString];
+		if(isset($GLOBALS['core_cache']['dashboard']['language'])) return $languageString;
+		
+		$language = self::allStrings();
+		if(!isset($language[$languageString])) return $languageString;
+		
+		return $language[$languageString];
+	}
+	
+	public static function allStrings() {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/exploitPatch.php";
+		
+		if(isset($GLOBALS['core_cache']['dashboard']['language'])) return $GLOBALS['core_cache']['dashboard']['language'];
+		
+		$userLanguage = Escape::latin_no_spaces($_COOKIE['lang'], 2);
+		if(!file_exists(__DIR__."/langs/".$userLanguage.".php")) $userLanguage = 'EN';
+		
+		if($userLanguage != 'EN') require __DIR__."/langs/EN.php";
+		require __DIR__."/langs/".$userLanguage.".php";
+		
+		$GLOBALS['core_cache']['dashboard']['language'] = $language;
+		
+		return $language;
 	}
 }
 ?>
