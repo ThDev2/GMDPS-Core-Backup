@@ -12,7 +12,7 @@ require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 
 class Dashboard {
 	/*
-		Accounts-related functions
+		Utils functions
 	*/
 	
 	public static function loginDashboardUser() {
@@ -80,86 +80,56 @@ class Dashboard {
 		return ["success" => true, "accountID" => (string)$accountID, "userID" => (string)$userID, "userName" => $userName, "IP" => $IP];
 	}
 	
+	public static function getUserIconKit($userID) {
+		global $dbPath;
+		require __DIR__."/../".$dbPath."config/dashboard.php";
+		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		
+		if(isset($GLOBALS['core_cache']['dashboard']['iconKit'][$userID])) return $GLOBALS['core_cache']['dashboard']['iconKit'][$userID];
+		
+		$iconTypes = ['cube', 'ship', 'ball', 'ufo', 'wave', 'robot', 'spider', 'swing', 'jetpack'];
+		
+		$user = Library::getUserByID($userID);
+		if(!$user) {
+			$iconKit = [
+				"main" => $iconsRendererServer."/icon.png?type=cube&value=1&color1=0&color2=3",
+				"cube" => $iconsRendererServer."/icon.png?type=cube&value=1&color1=0&color2=3",
+				"ship" => $iconsRendererServer."/icon.png?type=ship&value=1&color1=0&color2=3",
+				"ball" => $iconsRendererServer."/icon.png?type=ball&value=1&color1=0&color2=3",
+				"ufo" => $iconsRendererServer."/icon.png?type=ufo&value=1&color1=0&color2=3",
+				"wave" => $iconsRendererServer."/icon.png?type=wave&value=1&color1=0&color2=3",
+				"robot" => $iconsRendererServer."/icon.png?type=robot&value=1&color1=0&color2=3",
+				"spider" => $iconsRendererServer."/icon.png?type=spider&value=1&color1=0&color2=3",
+				"swing" => $iconsRendererServer."/icon.png?type=swing&value=1&color1=0&color2=3",
+				"jetpack" => $iconsRendererServer."/icon.png?type=jetpack&value=1&color1=0&color2=3"
+			];
+			
+			$GLOBALS['core_cache']['dashboard']['iconKit'][$userID] = $iconKit;
+			
+			return $iconKit;
+		}
+		
+		$iconKit = [
+			'main' => $iconsRendererServer.'/icon.png?type='.$iconTypes[$user['iconType']].'&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'cube' => $iconsRendererServer.'/icon.png?type=cube&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'ship' => $iconsRendererServer.'/icon.png?type=ship&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'ball' => $iconsRendererServer.'/icon.png?type=ball&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'ufo' => $iconsRendererServer.'/icon.png?type=ufo&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'wave' => $iconsRendererServer.'/icon.png?type=wave&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'robot' => $iconsRendererServer.'/icon.png?type=robot&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'spider' => $iconsRendererServer.'/icon.png?type=spider&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'swing' => $iconsRendererServer.'/icon.png?type=swing&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : ''),
+			'jetpack' => $iconsRendererServer.'/icon.png?type=jetpack&value='.($user['accIcon'] ? $user['accIcon'] : 1).'&color1='.$user['color1'].'&color2='.$user['color2'].($user['accGlow'] ? '&glow='.$user['accGlow'].'&color3='.$user['color3'] : '')
+		];
+		
+		$GLOBALS['core_cache']['dashboard']['iconKit'][$userID] = $iconKit;
+			
+		return $iconKit;
+	}
+	
 	/*
-		Render pages
+		Translations
 	*/
-	
-	public static function renderTemplate($template, $pageTitle, $pageBase, $dataArray) {
-		global $dbPath;
-		require __DIR__."/../".$dbPath."config/dashboard.php";
-		
-		$person = self::loginDashboardUser();
-		
-		if(!file_exists(__DIR__."/templates/main.html") || !file_exists(__DIR__."/templates/".$template.".html") || !is_array($dataArray)) return false;
-		
-		$templatePage = file_get_contents(__DIR__."/templates/".$template.".html");
-		
-		if(!empty($dataArray)) foreach($dataArray AS $key => $value) $templatePage = str_replace("%".$key."%", $value, $templatePage);
-		
-		$mainPageData = [
-			'PAGE_TITLE' => $pageTitle,
-			'PAGE_BASE' => $pageBase,
-			'DASHBOARD_FAVICON' => $dashboardFavicon,
-			'DATABASE_PATH' => $dbPath,
-			'FAILED_TO_LOAD_TEXT' => "<i class='fa-solid fa-xmark'></i>".self::string("errorFailedToLoadPage"),
-			'STYLE_TIMESTAMP' => filemtime(__DIR__."/style.css"),
-			
-			'IS_LOGGED_IN' => $person['success'] ? 'true' : 'false',
-			'USERNAME' => $person['success'] ? $person['userName'] : '',
-			'PROFILE_ICON' => $person['success'] ? 'https://icons.gcs.icu/icon.png?type=cube&value=379&color1=0&color2=3' : '',
-			
-			'PAGE' => $templatePage,
-			'FOOTER' => ""
-		];
-		
-		$personPermissions = Library::getPersonPermissions($person);
-		foreach($personPermissions AS $permission => $value) $mainPageData['PERMISSION_'.$permission] = $value ? 'true' : 'false';
-		
-		$allStrings = self::allStrings();
-		foreach($allStrings AS $string => $value) $mainPageData['TEXT_'.$string] = $value;
-		
-		$page = file_get_contents(__DIR__."/templates/main.html");
-		
-		foreach($mainPageData AS $key => $value) $page = str_replace("%".$key."%", $value, $page);
-		
-		// Debug line, report if i forget to remove it in release lol
-		echo '<script>console.log('.json_encode($mainPageData, true).');</script>';
-		
-		return $page;
-	}
-	
-	public static function renderErrorPage($error) {
-		global $dbPath;
-		require __DIR__."/../".$dbPath."config/dashboard.php";
-		$pageTitle = $error." • ".$gdps;
-		$pageBase = "../";
-		
-		$dataArray = [
-			'INFO_TITLE' => self::string("errorTitle"),
-			'INFO_DESCRIPTION' => $error,
-			'INFO_BUTTON_TEXT' => self::string("home"),
-			'INFO_BUTTON_ONCLICK' => "getPage('')"
-		];
-		
-		$page = self::renderTemplate("general/info", $pageTitle, $pageBase, $dataArray);
-		
-		return $page;
-	}
-	
-	public static function renderPage($template, $title, $base, $dataArray) {
-		global $dbPath;
-		require __DIR__."/../".$dbPath."config/dashboard.php";
-		$pageTitle = $title." • ".$gdps;
-		$pageBase = $base;
-		
-		$page = self::renderTemplate($template, $pageTitle, $pageBase, $dataArray);
-		
-		return $page;
-	}
-	
-	public static function renderToast($icon, $text, $state, $location = '') {
-		return "<div id='toast' state='".$state."' location='".$location."'><i class='fa-solid fa-".$icon."'></i>".$text."</div>";
-	}
 	
 	public static function string($languageString) {
 		global $dbPath;
@@ -189,6 +159,92 @@ class Dashboard {
 		$GLOBALS['core_cache']['dashboard']['language'] = $language;
 		
 		return $language;
+	}
+	
+	/*
+		Render pages
+	*/
+	
+	public static function renderPage($template, $pageTitle, $pageBase, $dataArray) {
+		global $dbPath;
+		require __DIR__."/../".$dbPath."config/dashboard.php";
+		
+		$person = self::loginDashboardUser();
+		$userID = $person['userID'];
+		
+		if(!file_exists(__DIR__."/templates/main.html") || !file_exists(__DIR__."/templates/".$template.".html") || !is_array($dataArray)) return false;
+		
+		$templatePage = self::renderTemplate($template, $dataArray);
+		
+		$iconKit = self::getUserIconKit($userID);
+		
+		$mainPageData = [
+			'PAGE_TITLE' => $pageTitle,
+			'GDPS_NAME' => $gdps,
+			'PAGE_BASE' => $pageBase,
+			'DASHBOARD_FAVICON' => $dashboardFavicon,
+			'DATABASE_PATH' => $dbPath,
+			'STYLE_TIMESTAMP' => filemtime(__DIR__."/style.css"),
+			
+			'FAILED_TO_LOAD_TEXT' => "<i class='fa-solid fa-xmark'></i>".self::string("errorFailedToLoadPage"),
+			'COPIED_TEXT' => "<i class='fa-solid fa-copy'></i>".self::string("successCopiedText"),
+			
+			'IS_LOGGED_IN' => $person['success'] ? 'true' : 'false',
+			'USERNAME' => $person['success'] ? $person['userName'] : '',
+			'PROFILE_ICON' => $person['success'] ? $iconKit['main'] : '',
+			
+			'PAGE' => $templatePage,
+			'FOOTER' => ""
+		];
+		
+		$personPermissions = Library::getPersonPermissions($person);
+		foreach($personPermissions AS $permission => $value) $mainPageData['PERMISSION_'.$permission] = $value ? 'true' : 'false';
+		
+		$allStrings = self::allStrings();
+		foreach($allStrings AS $string => $value) $mainPageData['TEXT_'.$string] = $value;
+		
+		$page = self::renderTemplate('main', $mainPageData);
+		
+		// Debug line, report if i forget to remove it in release lol
+		echo '<script>console.log('.json_encode($mainPageData, true).');</script>';
+		
+		return $page;
+	}
+	
+	public static function renderErrorPage($pageTitle, $error) {
+		global $dbPath;
+		require __DIR__."/../".$dbPath."config/dashboard.php";
+		$pageBase = "../";
+		
+		$dataArray = [
+			'INFO_TITLE' => self::string("errorTitle"),
+			'INFO_DESCRIPTION' => $error,
+			'INFO_BUTTON_TEXT' => self::string("home"),
+			'INFO_BUTTON_ONCLICK' => "getPage('')"
+		];
+		
+		$page = self::renderPage("general/info", $pageTitle, $pageBase, $dataArray);
+		
+		return $page;
+	}
+	
+	public static function renderToast($icon, $text, $state, $location = '') {
+		return "<div id='toast' state='".$state."' location='".$location."'><i class='fa-solid fa-".$icon."'></i>".$text."</div>";
+	}
+	
+	public static function renderTemplate($template, $dataArray) {
+		if(!isset($GLOBALS['core_cache']['dashboard']['template'][$template])) {
+			$templatePage = file_get_contents(__DIR__."/templates/".$template.".html");
+			$GLOBALS['core_cache']['dashboard']['template'][$template] = $templatePage;
+		} else $templatePage = $GLOBALS['core_cache']['dashboard']['template'][$template];
+		
+		if(!empty($dataArray)) foreach($dataArray AS $key => $value) $templatePage = str_replace("%".$key."%", (string)$value, $templatePage);
+		
+		return $templatePage;
+	}
+	
+	public static function getUsernameString($userName, $mainIcon, $attributes = '') {
+		return sprintf('<text class="username" title="'.sprintf(self::string('userProfile'), $userName).'" %3$s href="profile/%1$s">%1$s<img src="%2$s"></img></text>', $userName, $mainIcon, $attributes);
 	}
 }
 ?>

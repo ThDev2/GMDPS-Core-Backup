@@ -1411,6 +1411,25 @@ class Library {
 		return true;
 	}
 	
+	public static function changePassword($person, $targetPassword) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/security.php";
+		
+		$accountID = $person['accountID'];
+		
+		if(empty($targetPassword) || strlen($targetPassword) < 6) return false;
+		
+		$gjp2 = Security::GJP2FromPassword($targetPassword);
+		$changePassword = $db->prepare("UPDATE accounts SET password = :password, gjp2 = :gjp2 WHERE accountID = :accountID");
+		$changePassword->execute([':password' => Security::hashPassword($targetPassword), ':gjp2' => Security::hashPassword($gjp2), ':accountID' => $accountID]);
+		
+		Security::assignAuthToken($accountID);
+		
+		self::logAction($person, Action::PasswordChange);
+		
+		return true;
+	}
+	
 	/*
 		Levels-related functions
 	*/
@@ -2492,6 +2511,20 @@ class Library {
 		return count($isVoted) > 0;
 	}
 	
+	public static function getLevelDifficultyImage($level) {
+		require __DIR__."/../../config/discord.php";
+		
+		$featured = $level['starEpic'] + ($level['starFeatured'] ? 1 : 0);
+		$starsDiff = ['stars', 'featured', 'epic', 'legendary', 'mythic'];
+		$starsIcon = $starsDiff[$featured];
+
+		$difficulty = self::prepareDifficultyForRating(($level['starDifficulty'] / $level['difficultyDenominator']), $level['starAuto'], $level['starDemon'], $level['starDemonDiff']);
+		$diffArray = ['n/a' => 'na', 'auto' => 'auto', 'easy' => 'easy', 'normal' => 'normal', 'hard' => 'hard', 'harder' => 'harder', 'insane' => 'insane', 'demon' => 'demon-hard', 'easy demon' => 'demon-easy', 'medium demon' => 'demon-medium', 'hard demon' => 'demon-hard', 'insane demon' => 'demon-insane', 'extreme demon' => 'demon-extreme'];
+        $diffIcon = $diffArray[strtolower($difficulty)] ?? 'na';
+		
+		return $difficultiesURL.$starsIcon.'/'.$diffIcon.'.png';
+	}
+	
 	/*
 		Lists-related functions
 	*/
@@ -3478,6 +3511,60 @@ class Library {
 		unset($GLOBALS['core_cache']['songs'][$songID]);
 		
 		return self::getSongByID($songID);
+	}
+	
+	public static function getAudioTrack($trackID) {
+		$songs = [
+			"Practice: Stay Inside Me by OcularNebula",
+			"Stereo Madness by ForeverBound",
+			"Back on Track by DJVI",
+			"Polargeist by Step",
+			"Dry Out by DJVI",
+			"Base after Base by DJVI",
+			"Can't Let Go by DJVI",
+			"Jumper by Waterflame",
+			"Time Machine by Waterflame",
+			"Cycles by DJVI",
+			"xStep by DJVI",
+			"Clutterfunk by Waterflame",
+			"Theory of Everything by DJ Nate",
+			"Electroman Adventures by Waterflame",
+			"Club Step by DJ Nate",
+			"Electrodynamix by DJ Nate",
+			"Hexagon Force by Waterflame",
+			"Blast Processing by Waterflame",
+			"Theory of Everything 2 by DJ Nate",
+			"Geometrical Dominator by Waterflame",
+			"Deadlocked by F-777",
+			"Fingerbang by MDK",
+			"Dash by MDK",
+			"Explorers by Hinkik",
+			"The Seven Seas by F-777",
+			"Viking Arena by F-777",
+			"Airborne Robots by F-777",
+			"Secret by RobTopGames",
+			"Payload by Dex Arson",
+			"Beast Mode by Dex Arson",
+			"Machina by Dex Arson",
+			"Years by Dex Arson",
+			"Frontlines by Dex Arson",
+			"Space Pirates by Waterflame",
+			"Striker by Waterflame",
+			"Embers by Dex Arson",
+			"Round 1 by Dex Arson",
+			"Monster Dance Off by F-777",
+			"Press Start by MDK",
+			"Nock Em by Bossfight",
+			"Power Trip by Boom Kitty"
+		];
+		
+		$track = $songs[($trackID + 1)] ?: "Unknown by DJVI";
+		$trackArray = explode(' by ', $track);
+		
+		return [
+			'name' => $trackArray[1],
+			'authorName' => $trackArray[0]
+		];
 	}
 	
 	/*

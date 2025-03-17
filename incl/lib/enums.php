@@ -87,6 +87,7 @@ class Action {
 	const ProfileStatsChange = 9;
 	const ProfileSettingsChange = 27;
 	const UsernameChange = 47;
+	const PasswordChange = 48;
 	
 	const SuccessfulAccountSync = 10;
 	const FailedAccountSync = 11;

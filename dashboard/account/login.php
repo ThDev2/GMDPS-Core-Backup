@@ -6,7 +6,7 @@ require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 $sec = new Security();
 
 $person = Dashboard::loginDashboardUser();
-if($person['success']) exit(Dashboard::renderToast("xmark", Dashboard::string("errorAlreadyLoggedIn"), "error", './'));
+if($person['success']) exit(Dashboard::renderErrorPage(Dashboard::string("loginToAccountTitle"), Dashboard::string("errorAlreadyLoggedIn")));
 
 if(isset($_POST['userName']) && isset($_POST['password'])) {
 	$person = $sec->loginPlayer();

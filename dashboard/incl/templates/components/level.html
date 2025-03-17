@@ -1,0 +1,54 @@
+<div class="levelCard">
+	<div class="horisontal">
+		<div class="vertical">
+			<div class="levelTitle">
+				<h2>%LEVEL_TITLE%</h2>
+			</div>
+			
+			<p class="levelDescription">%LEVEL_DESCRIPTION%</p>
+			
+			<div class="songCard">
+				<button class="contents" dashboard-show="%LEVEL_IS_CUSTOM_SONG%"
+					dashboard-song
+					dashboard-author="%LEVEL_SONG_AUTHOR%"
+					dashboard-title="%LEVEL_SONG_TITLE%"
+					dashboard-url="%LEVEL_SONG_URL%"
+				>
+					<i class="fa-solid fa-circle-play"></i>
+				</button>
+				<i dashboard-hide="%LEVEL_IS_CUSTOM_SONG%" class="fa-solid fa-music"></i>
+				
+				<text>%LEVEL_SONG%</text>
+			</div>
+		</div>
+		
+		<img class="difficultyImage" src="%LEVEL_DIFFICULTY_IMAGE%"></img>
+	</div>
+	
+	<div class="horisontal stats">
+		<text class="levelStat" title="%TEXT_levelID%">
+			<i class="fa-solid fa-gamepad"></i>
+			<text dashboard-copy>%levelID%</text>
+		</text>
+		
+		<div class="levelStats">
+			<text class="levelStat" title="%TEXT_levelLength%">
+				<i class="fa-solid fa-clock"></i>
+				%LEVEL_LENGTH%
+			</text>
+			
+			<text class="levelStat" title="%TEXT_downloads%">
+				<i class="fa-solid fa-arrow-down"></i>
+				%downloads%
+			</text>
+			
+			<text class="levelStat"  title="%TEXT_likes%">
+				<i dashboard-hide="%LEVEL_IS_DISLIKED%" class="fa-solid fa-thumbs-up"></i>
+				<i dashboard-show="%LEVEL_IS_DISLIKED%" class="fa-solid fa-thumbs-down"></i>
+				%LEVEL_LIKES%
+			</text>
+			
+			<button type="button" onclick="%LEVEL_BUTTON_ONCLICK%">%TEXT_viewLevel%</button>
+		</div>
+	</div>
+</div>

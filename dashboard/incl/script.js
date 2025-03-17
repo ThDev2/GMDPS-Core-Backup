@@ -11,6 +11,7 @@ window.addEventListener('load', () => {
 	if(localStorage.navbar_state == 'true') dashboardBody.classList.add("hide");
 	else dashboardBody.classList.remove("hide");
 	
+	updatePage();
 	updateNavbar();
 	
 	window.addEventListener("popstate", (e) => getPage(e.target.location.pathname, true));
@@ -98,31 +99,20 @@ function changePage(response, href, skipCheck = false) {
 	dashboardBody = document.getElementById("dashboard-body");
 	dashboardBase = document.querySelector("base");
 	
+	updatePage();
 	updateNavbar();
 }
 
-function updateNavbar() {
+async function updateNavbar() {
 	const navbarButtons = document.querySelectorAll("nav button");
 	
 	navbarButtons.forEach(navbarButton => {
 		const href = navbarButton.getAttribute("href");
 		const dropdown = navbarButton.getAttribute("dashboard-dropdown");
 		
-		if(href != null || dropdown != null) navbarButton.addEventListener("mouseup", (event) => {
-			if(dropdown != null) return toggleDropdown(dropdown);
-			
-			switch(event.button) {
-				case 0:
-					getPage(href);
-					break;
-				case 1:
-					const openNewTab = document.createElement("a");
-					openNewTab.href = href;
-					openNewTab.target = "_blank";
-					openNewTab.click();
-					break;
-			}
-		});
+		if(href != null && ((window.location.href.endsWith(href) && href.length) || (!href.length && dashboardBase.getAttribute("href") == './'))) navbarButton.classList.add("current");
+		
+		if(dropdown != null) navbarButton.addEventListener("mouseup", (event) => toggleDropdown(dropdown));
 	});
 	
 	for(const element of document.querySelectorAll("[dashboard-hide=true]")) element.remove();
@@ -130,6 +120,9 @@ function updateNavbar() {
 }
 
 function toggleDropdown(dropdown) {
+	const previousDropdown = document.querySelector(".dropdown.show");
+	if(previousDropdown != null && previousDropdown.id != dropdown) previousDropdown.classList.remove("show");
+	
 	document.getElementById(dropdown).classList.toggle("show");
 }
 
@@ -144,4 +137,59 @@ function showToast(toastBody) {
 	
 	const toastLocation = toastBody.getAttribute("location");
 	if(toastLocation.length) getPage(toastLocation);
+}
+
+async function updatePage() {
+	const removeElements = dashboardBody.querySelectorAll('[dashboard-remove]');
+	removeElements.forEach(async (element) => {
+		const elementsToRemove = element.getAttribute("dashboard-remove").split(" ");
+		
+		elementsToRemove.forEach(async (remove) => element.removeAttribute(remove));
+		
+		element.removeAttribute("dashboard-remove");
+	});
+	
+	const copyElements = dashboardBody.querySelectorAll('[dashboard-copy]');
+	copyElements.forEach(async (element) => {
+		const textToCopy = element.innerHTML;
+		
+		element.addEventListener("click", async (event) => {
+			navigator.clipboard.writeText(textToCopy);
+			
+			Toastify({
+				text: copiedText,
+				duration: 2000,
+				position: "center",
+				escapeMarkup: false,
+				className: "success",
+			}).showToast();
+		});
+	});
+	
+	const hrefElements = document.querySelectorAll('[href]');
+	hrefElements.forEach(async (element) => {
+		const href = element.getAttribute("href");
+		
+		element.addEventListener("mouseup", async (event) => {
+			switch(event.button) {
+				case 0:
+					getPage(href);
+					break;
+				case 1:
+					const openNewTab = document.createElement("a");
+					openNewTab.href = href;
+					openNewTab.target = "_blank";
+					openNewTab.click();
+					return false;
+					break;
+			}
+		});
+	});
+	
+	const disableElements = dashboardBody.querySelectorAll('[dashboard-disable]');
+	disableElements.forEach(async (element) => {
+		const isDisable = element.getAttribute("dashboard-disable");
+		
+		if(isDisable == 'true') element.disabled = true;
+	});
 }
