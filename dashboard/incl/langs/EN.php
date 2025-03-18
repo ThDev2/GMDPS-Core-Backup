@@ -13,6 +13,7 @@ $language['profile'] = 'Profile';
 $language['settings'] = 'Settings';
 $language['main'] = 'Main';
 $language['userProfile'] = '%1%s\'s profile';
+$language['nothingIsPlaying'] = 'Nothing is playing...';
 
 /* Panel strings */
 $language['hidePanel'] = 'Hide panel';
@@ -69,5 +70,6 @@ $language['levelLength'] = 'Level length';
 $language['downloads'] = 'Downloads';
 $language['likes'] = 'Likes';
 $language['viewLevel'] = 'View level';
+$language['unknownSong'] = 'Unknown song';
 $language['pageText'] = 'Page %1$s of %2$s';
 ?>

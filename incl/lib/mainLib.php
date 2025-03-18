@@ -2920,7 +2920,7 @@ class Library {
 		$GLOBALS['core_cache']['songs'][$songID] = $song;		
 		
 		if($column != "*") return $song[$column];
-		else return array("isLocalSong" => $isLocalSong, "ID" => $song["ID"], "name" => $song["name"], "authorName" => $song["authorName"], "size" => $song["size"], "duration" => $song["duration"], "download" => $song["download"], "reuploadTime" => $song["reuploadTime"], "reuploadID" => $song["reuploadID"]);
+		else return array("isLocalSong" => $isLocalSong, "ID" => $song["ID"], "name" => $song["name"], "authorName" => $song["authorName"], "size" => $song["size"], "duration" => $song["duration"], "download" => urldecode($song["download"]), "reuploadTime" => $song["reuploadTime"], "reuploadID" => $song["reuploadID"]);
 	}
 	
 	public static function getSFXByID($sfxID, $column = "*") {
@@ -2992,7 +2992,6 @@ class Library {
 	
 	public static function getLibrarySongInfo($audioID, $type = 'music') {
 		require __DIR__."/../../config/dashboard.php";
-		
 		
 		if(!file_exists(__DIR__.'/../../'.$type.'/ids.json')) return false;
 		
@@ -3562,8 +3561,8 @@ class Library {
 		$trackArray = explode(' by ', $track);
 		
 		return [
-			'name' => $trackArray[1],
-			'authorName' => $trackArray[0]
+			'name' => $trackArray[0],
+			'authorName' => $trackArray[1]
 		];
 	}
 	

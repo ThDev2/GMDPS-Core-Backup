@@ -168,6 +168,7 @@ class Dashboard {
 	public static function renderPage($template, $pageTitle, $pageBase, $dataArray) {
 		global $dbPath;
 		require __DIR__."/../".$dbPath."config/dashboard.php";
+		require_once __DIR__."/../".$dbPath."incl/lib/exploitPatch.php";
 		
 		$person = self::loginDashboardUser();
 		$userID = $person['userID'];
@@ -188,6 +189,8 @@ class Dashboard {
 			
 			'FAILED_TO_LOAD_TEXT' => "<i class='fa-solid fa-xmark'></i>".self::string("errorFailedToLoadPage"),
 			'COPIED_TEXT' => "<i class='fa-solid fa-copy'></i>".self::string("successCopiedText"),
+			
+			'LANGUAGE' => Escape::latin_no_spaces($_COOKIE['lang'], 2) ?: "EN",
 			
 			'IS_LOGGED_IN' => $person['success'] ? 'true' : 'false',
 			'USERNAME' => $person['success'] ? $person['userName'] : '',

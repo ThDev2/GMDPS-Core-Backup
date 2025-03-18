@@ -13,6 +13,7 @@ $language['profile'] = 'Профиль';
 $language['settings'] = 'Настройки';
 $language['main'] = 'Главная';
 $language['userProfile'] = 'Профиль %1%s';
+$language['nothingIsPlaying'] = 'Ничего не играет...';
 
 /* Panel strings */
 $language['hidePanel'] = 'Скрыть панель';
@@ -69,5 +70,6 @@ $language['levelLength'] = 'Длительность';
 $language['downloads'] = 'Загрузки';
 $language['likes'] = 'Лайки';
 $language['viewLevel'] = 'Посмотреть уровень';
+$language['unknownSong'] = 'Неизвестная песня';
 $language['pageText'] = 'Страница %1$s из %2$s';
 ?>

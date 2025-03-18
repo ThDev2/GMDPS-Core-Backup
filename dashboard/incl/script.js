@@ -1,7 +1,8 @@
 if(typeof localStorage.navbar_state == "undefined") localStorage.navbar_state = 'true';
-if(typeof localStorage.player_volume == "undefined") localStorage.player_volume = 0.2;
+if(typeof localStorage.player_volume == "undefined") localStorage.player_volume = 0.15;
 
 var dashboardLoader, dashboardBody, dashboardBase;
+var intervals = [];
 
 window.addEventListener('load', () => {
 	dashboardLoader = document.getElementById("dashboard-loader");
@@ -152,18 +153,10 @@ async function updatePage() {
 	const copyElements = dashboardBody.querySelectorAll('[dashboard-copy]');
 	copyElements.forEach(async (element) => {
 		const textToCopy = element.innerHTML;
-		
-		element.addEventListener("click", async (event) => {
-			navigator.clipboard.writeText(textToCopy);
+	
+		if(!textToCopy.length) return;
 			
-			Toastify({
-				text: copiedText,
-				duration: 2000,
-				position: "center",
-				escapeMarkup: false,
-				className: "success",
-			}).showToast();
-		});
+		element.addEventListener("click", async (event) => copyElementContent(textToCopy));
 	});
 	
 	const hrefElements = document.querySelectorAll('[href]');
@@ -192,4 +185,120 @@ async function updatePage() {
 		
 		if(isDisable == 'true') element.disabled = true;
 	});
+	
+	intervals.forEach(async (interval) => clearInterval(interval));
+	
+	var index = 0;
+	
+	const dateElements = dashboardBody.querySelectorAll('[dashboard-date]');
+	dateElements.forEach(async (element) => {
+		const dateTime = element.getAttribute("dashboard-date");
+		
+		index++;
+		
+		element.innerHTML = timeConverter(dateTime, true);
+		intervals[index] = setInterval(async (event) => {
+			element.innerHTML = timeConverter(dateTime, true);
+		}, 1000);
+		
+		element.onclick = () => {
+			Toastify({
+				text: timeConverter(dateTime, false),
+				duration: 2000,
+				position: "center",
+				escapeMarkup: false,
+				className: "info",
+			}).showToast();
+		}
+	});
+	
+	if(player.isPlaying) document.querySelectorAll("[dashboard-song='" + player.isPlaying + "'] i").forEach((element) => element.classList.replace("fa-circle-play", "fa-circle-pause"));
+	
+	const songElements = dashboardBody.querySelectorAll('[dashboard-song]');
+	songElements.forEach(async (element) => {
+		const songID = element.getAttribute("dashboard-song");
+		const songAuthor = element.getAttribute("dashboard-author");
+		const songTitle = element.getAttribute("dashboard-title");
+		const songURL = element.getAttribute("dashboard-url");
+		
+		element.onclick = () => player.interact(songID, songAuthor, songTitle, songURL);
+	});
+}
+
+function timeConverter(timestamp, min = false) {
+	if(!min) {
+		const time = new Date(timestamp * 1000);
+		
+		const dayNumber = time.getDate();
+		const day = dayNumber < 10 ? '0' + String(dayNumber) : dayNumber;
+		
+		const monthNumber = time.getMonth() + 1;
+		const month = monthNumber < 10 ? '0' + String(monthNumber) : monthNumber;
+		
+		const year = time.getFullYear();
+		
+		const hours = time.getHours();
+		
+		const minutesNumber = time.getMinutes();
+		const minutes = minutesNumber < 10 ? '0' + String(minutesNumber) : minutesNumber;
+		
+		const secondsNumber = time.getSeconds();
+		const seconds = secondsNumber < 10 ? '0' + String(secondsNumber) : secondsNumber;
+		
+		return day + '.' + month + '.' + year + ", "+ hours + ":" + minutes + ":" + seconds;
+	}
+	
+	const currentTime = new Date();
+	var passedTime = Math.round(currentTime.getTime() / 1000) - timestamp;
+	var unitType = '';
+	
+	switch(true) {
+		case passedTime >= 31536000:
+			passedTime = Math.round(passedTime / 31536000);
+			unitType = 'year';
+			break;
+		case passedTime >= 2592000:
+			passedTime = Math.round(passedTime / 2592000);	
+			unitType = 'month';
+			break;
+		case passedTime >= 604800:
+			passedTime = Math.round(passedTime / 604800);
+			unitType = 'week';
+			break;
+		case passedTime >= 86400:
+			passedTime = Math.round(passedTime / 86400);
+			unitType = 'day';
+			break;
+		case passedTime >= 3600:
+			passedTime = Math.round(passedTime / 3600);
+			unitType = 'hour';
+			break;
+		case passedTime >= 60:
+			passedTime = Math.round(passedTime / 60);
+			unitType = 'minute';
+			break;
+		case passedTime >= 0:
+			unitType = 'second';
+			break;
+	}
+	
+	const options = {
+		numeric: "auto",
+		style: "short"
+	}
+	
+	const rtf = new Intl.RelativeTimeFormat(localStorage.language.toLowerCase(), options);
+	return rtf.format(-1 * passedTime, unitType);
+}
+
+function copyElementContent(textToCopy) {
+	navigator.clipboard.writeText(textToCopy);
+	
+	Toastify({
+		text: copiedText,
+		duration: 2000,
+		position: "center",
+		escapeMarkup: false,
+		className: "success",
+	}).showToast();
 }

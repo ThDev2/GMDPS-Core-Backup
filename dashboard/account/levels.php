@@ -44,10 +44,12 @@ foreach($levels['levels'] AS &$level) {
 	$level['LEVEL_LIKES'] = abs($level['likes'] - $level['dislikes']);
 	$level['LEVEL_IS_DISLIKED'] = $level['dislikes'] > $level['likes'] ? 'true' : 'false';
 	
-	$level['LEVEL_SONG'] = $song['authorName']." - ".$song['name'].(isset($song['ID']) ? " • <text dashboard-copy>".$song['ID'].'</text>' : '');
-	$level['LEVEL_SONG_AUTHOR'] = $song['authorName'];
-	$level['LEVEL_SONG_TITLE'] = $song['name'];
-	$level['LEVEL_SONG_URL'] = urlencode($song['download']) ?: '';
+	if($song) $level['LEVEL_SONG'] = $song['authorName']." - ".$song['name'].(isset($song['ID']) ? " • <text dashboard-copy>".$song['ID'].'</text>' : '');
+	else $level['LEVEL_SONG'] = Dashboard::string("unknownSong");
+	$level['LEVEL_SONG_ID'] = $song['ID'] ?: '';
+	$level['LEVEL_SONG_AUTHOR'] = $song['authorName'] ?: '';
+	$level['LEVEL_SONG_TITLE'] = $song['name'] ?: '';
+	$level['LEVEL_SONG_URL'] = urlencode(urldecode($song['download'])) ?: '';
 	$level['LEVEL_IS_CUSTOM_SONG'] = isset($song['ID']) ? 'true' : 'false';
 	
 	$page .= Dashboard::renderTemplate('components/level', $level);
