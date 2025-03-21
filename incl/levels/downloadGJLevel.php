@@ -20,6 +20,7 @@ $feaID = 0;
 if($levelID < 0) {
 	$daily = Library::getDailyLevelID($levelID);
 	if(!$daily) exit(CommonError::InvalidRequest);
+	
 	$levelID = $daily['levelID'];
 	$feaID = $daily['feaID'];
 }

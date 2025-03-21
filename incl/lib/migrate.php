@@ -239,6 +239,57 @@ if(!$installed) {
 			if(!empty($commentBanned)) $db->query('ALTER TABLE `users` DROP `isCommentBanned`');
 			if(!empty($banReason)) $db->query('ALTER TABLE `users` DROP `banReason`');
 		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandRenameOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandRenameOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandRenameAll` `commandRename` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandPassOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandPassOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandPassAll` `commandPass` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandDescriptionOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandDescriptionOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandDescriptionAll` `commandDescription` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandPublicOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandPublicOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandPublicAll` `commandPublic` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandUnlistOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandUnlistOwn`");
+			$db->query("ALTER TABLE `roles` DROP `commandUnlistAll`");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandSharecpOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandSharecpOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandSharecpAll` `commandSharecp` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandSongOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandSongOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandSongAll` `commandSong` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandLockCommentsOwn'");
+		$exist = $check->fetchAll();
+		if(!empty($exist)) {
+			$db->query("ALTER TABLE `roles` DROP `commandLockCommentsOwn`");
+			$db->query("ALTER TABLE `roles` CHANGE `commandLockCommentsAll` `commandLockComments` INT NOT NULL DEFAULT '0'");
+		}
+	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandLockComments'");
+		$exist = $check->fetchAll();
+		if(empty($exist)) $db->query("ALTER TABLE `roles` ADD `commandLockComments` INT NOT NULL DEFAULT '0' AFTER `commandSong`");
 	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'profilecommandDiscord'");
 		$exist = $check->fetchAll();
 		if(!empty($exist)) $db->query("ALTER TABLE `roles` DROP `profilecommandDiscord`");
@@ -359,57 +410,6 @@ if(!$installed) {
 	$check = $db->query("SHOW COLUMNS FROM `comments` LIKE 'userName'");
 		$exist = $check->fetchAll();
 		if(!empty($exist)) $db->query("ALTER TABLE `comments` DROP `userName`");
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandRenameOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandRenameOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandRenameAll` `commandRename` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandPassOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandPassOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandPassAll` `commandPass` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandDescriptionOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandDescriptionOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandDescriptionAll` `commandDescription` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandPublicOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandPublicOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandPublicAll` `commandPublic` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandUnlistOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandUnlistOwn`");
-			$db->query("ALTER TABLE `roles` DROP `commandUnlistAll`");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandSharecpOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandSharecpOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandSharecpAll` `commandSharecp` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandSongOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandSongOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandSongAll` `commandSong` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandLockCommentsOwn'");
-		$exist = $check->fetchAll();
-		if(!empty($exist)) {
-			$db->query("ALTER TABLE `roles` DROP `commandLockCommentsOwn`");
-			$db->query("ALTER TABLE `roles` CHANGE `commandLockCommentsAll` `commandLockComments` INT NOT NULL DEFAULT '0'");
-		}
-	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'commandLockComments'");
-		$exist = $check->fetchAll();
-		if(empty($exist)) $db->query("ALTER TABLE `roles` ADD `commandLockComments` INT NOT NULL DEFAULT '0' AFTER `commandSong`");
 	$check = $db->query("SHOW COLUMNS FROM `roles` LIKE 'actionRequestMod'");
 		$exist = $check->fetchAll();
 		if(!empty($exist)) $db->query("ALTER TABLE `roles` DROP `actionRequestMod`");

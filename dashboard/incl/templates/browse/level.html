@@ -1,0 +1,110 @@
+<div class="wideBox levelPage">
+	<div class="levelCard">
+		<div class="horisontal">
+			<div class="vertical">
+				<div class="levelTitle">
+					<h2>%LEVEL_TITLE% • <text dashboard-copy>%levelID%</text></h2>
+				</div>
+				
+				<p class="levelDescription">%LEVEL_DESCRIPTION%</p>
+			</div>
+			
+			<img loading="lazy" class="difficultyImage" src="%LEVEL_DIFFICULTY_IMAGE%"></img>
+		</div>
+		
+		<div class="horisontal stats">
+			<div class="songCard">
+				<button class="contents" dashboard-show="%LEVEL_IS_CUSTOM_SONG%"
+					dashboard-title="%LEVEL_SONG_TITLE%"
+					dashboard-author="%LEVEL_SONG_AUTHOR%"
+					dashboard-url="%LEVEL_SONG_URL%"
+					dashboard-song="%LEVEL_SONG_ID%"
+				>
+					<i class="fa-solid fa-circle-play"></i>
+				</button>
+				<i dashboard-hide="%LEVEL_IS_CUSTOM_SONG%" class="fa-solid fa-music"></i>
+				
+				<text>%LEVEL_SONG%</text>
+			</div>
+		</div>
+	</div>
+	
+	<div class="horisontal">
+		<div class="levelStats">
+			<div class="levelStat several">
+				<text  title="%TEXT_stars%">
+					<i class="fa-solid fa-star"></i> %starStars%
+				</text>
+				<text  title="%TEXT_requestedStars%" dashboard-show="%LEVEL_HAS_REQUESTED_STARS%">
+					<i class="fa-regular fa-star"></i> %requestedStars%
+				</text>
+			</div>
+			
+			<div class="levelStat" title="%TEXT_downloads%">
+				<i class="fa-solid fa-reply fa-rotate-270"></i>
+				%downloads%
+			</div>
+			
+			<div class="levelStat several">
+				<text title="%TEXT_likes%">
+					<i class="fa-solid fa-thumbs-up"></i> %likes%
+				</text>
+				<text title="%TEXT_dislikes%">
+					<i class="fa-solid fa-thumbs-down"></i> %dislikes%
+				</text>
+			</div>
+		
+			<div class="levelStat" title="%TEXT_levelLength%">
+				<i class="fa-solid fa-clock"></i>
+				%LEVEL_LENGTH%
+			</div>
+			
+			<div class="levelStat" title="%TEXT_uploadDate%">
+				<i class="fa-solid fa-calendar"></i>
+				<text dashboard-date="%uploadDate%" dashboard-full></text>
+			</div>
+			
+			<div class="levelStat several" title="%TEXT_password%" dashboard-show="%LEVEL_CAN_SEE_PASSWORD%">
+				<text>
+					<i class="fa-solid fa-key"></i> <text dashboard-password="%LEVEL_PASSWORD%">••••••</text>
+				</text>
+				
+				<button type="button" class="eyeButton" onclick="showLevelPassword()"><i class="fa-solid fa-eye"></i></button>
+			</div>
+			
+			<div class="levelStat several" title="%TEXT_comments%">
+				<text>
+					<i class="fa-solid fa-comment"></i> %LEVEL_COMMENTS%
+				</text>
+				
+				<button type="button" class="eyeButton" onclick="getPage('browse/levels/%levelID%/comments')"><i class="fa-solid fa-eye"></i></button>
+			</div>
+			
+			<div class="levelStat several" title="%TEXT_scores%">
+				<text>
+					<i class="fa-solid fa-chart-simple"></i> %LEVEL_SCORES%
+				</text>
+				
+				<button type="button" class="eyeButton" onclick="getPage('browse/levels/%levelID%/scores')"><i class="fa-solid fa-eye"></i></button>
+			</div>
+			
+			<div class="levelStat several" title="%TEXT_manageLevel%" dashboard-show="%LEVEL_CAN_MANAGE%">
+				<text>
+					<i class="fa-solid fa-pencil"></i> %TEXT_manage%
+				</text>
+				
+				<button type="button" class="eyeButton" onclick="getPage('browse/levels/%levelID%/manage')"><i class="fa-solid fa-eye"></i></button>
+			</div>
+		</div>
+		
+		<div class="commentsDiv">
+			<div class="nothingOnPageDiv" dashboard-show="%LEVEL_IS_NOTHING_OPENED%">
+				<i class="fa-solid fa-ellipsis nothing-icon"></i>
+				<h1>%TEXT_nothingOpened%</h1>
+				<i dashboard-has-password="%LEVEL_CAN_SEE_PASSWORD%" class="fa-solid fa-share arrow-icon"></i>
+			</div>
+			
+			%LEVEL_ADDITIONAL_PAGE%
+		</div>
+	</div>
+</div>

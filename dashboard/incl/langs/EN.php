@@ -14,6 +14,7 @@ $language['settings'] = 'Settings';
 $language['main'] = 'Main';
 $language['userProfile'] = '%1%s\'s profile';
 $language['nothingIsPlaying'] = 'Nothing is playing...';
+$language['manage'] = 'Manage';
 
 /* Panel strings */
 $language['hidePanel'] = 'Hide panel';
@@ -27,6 +28,9 @@ $language['yourSongsTitle'] = 'Your songs';
 $language['favouriteSongsTitle'] = 'Favourite songs';
 $language['yourSFXsTitle'] = 'Your SFXs';
 
+$language['browse'] = 'Browse';
+$language['levelsTitle'] = 'Levels';
+
 $language['messengerTitle'] = 'Messenger';
 $language['loginToAccountTitle'] = 'Login to account';
 $language['yourProfileTitle'] = 'Your profile';
@@ -34,6 +38,9 @@ $language['logoutFromAccountTitle'] = 'Logout';
 
 /* Error strings */
 $language['errorTitle'] = 'Error has occured';
+
+$language['errorNoPermission'] = 'You have no permission to view this page.';
+
 $language['errorFailedToLoadPage'] = 'Failed to load page!';
 $language['errorAlreadyLoggedIn'] = 'You\'re already logged in!';
 $language['errorWrongLoginOrPassword'] = 'Wrong username or password!';
@@ -45,6 +52,11 @@ $language['errorBadUsername'] = 'Please choose another username.';
 $language['errorSamePasswords'] = 'Old and new passwords are the same.';
 $language['errorBadPassword'] = 'Please choose another password.';
 
+$language['errorLevelNotFound'] = 'Level wasn\'t found!';
+
+$language['errorCantDeleteComment'] = 'You can\'t delete this comment.';
+$language['errorCantDeleteScore'] = 'You can\'t delete this score.';
+
 /* Success strings */
 $language['successCopiedText'] = 'Copied text!';
 
@@ -53,6 +65,9 @@ $language['successLoggedOut'] = 'You successfully logged out!';
 $language['successChangedUsername'] = 'You successfully changed username! Relogin to account.';
 
 $language['successChangedPassword'] = 'You successfully changed password! Relogin to account.';
+
+$language['successDeletedComment'] = 'You deleted this comment!';
+$language['successDeletedScore'] = 'You deleted this score!';
 
 /* Page strings */
 $language['changeUsernameOld'] = 'Old username';
@@ -64,12 +79,39 @@ $language['changePasswordOld'] = 'Old password';
 $language['changePasswordNew'] = 'New password';
 
 $language['levelTitle'] = '<text class="big">%1$s</text> by %2$s';
+$language['stars'] = 'Stars';
+$language['requestedStars'] = 'Requested stars';
 $language['noDescription'] = 'No description provided';
 $language['levelID'] = 'Level ID';
 $language['levelLength'] = 'Level length';
 $language['downloads'] = 'Downloads';
 $language['likes'] = 'Likes';
+$language['dislikes'] = 'Dislikes';
 $language['viewLevel'] = 'View level';
 $language['unknownSong'] = 'Unknown song';
+$language['uploadDate'] = 'Upload date';
+
+$language['comments'] = 'Comments';
+$language['scores'] = 'Scores';
+$language['nothingOpened'] = 'Nothing is opened!';
+$language['manageLevel'] = 'Manage level';
+$language['noComments'] = 'No comments!';
+$language['noScores'] = 'No scores!';
+
+$language['sortByLikes'] = 'Sort by likes';
+$language['sortByTime'] = 'Sort by time';
+$language['friends'] = 'Friends';
+$language['all'] = 'All';
+$language['forWeek'] = 'For week';
+$language['sortByPoints'] = 'Sort by points';
+$language['normalScores'] = 'Normal scores';
+$language['dailyScores'] = 'Scores from \'Daily\' tab';
+
+$language['percent'] = 'Percent';
+$language['attempts'] = 'Attempts';
+$language['coins'] = 'Coins';
+$language['clicks'] = 'Clicks';
+$language['time'] = 'Time';
+
 $language['pageText'] = 'Page %1$s of %2$s';
 ?>

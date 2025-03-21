@@ -12,10 +12,11 @@ window.addEventListener('load', () => {
 	if(localStorage.navbar_state == 'true') dashboardBody.classList.add("hide");
 	else dashboardBody.classList.remove("hide");
 	
+	loadAudioPlayer();
 	updatePage();
 	updateNavbar();
 	
-	window.addEventListener("popstate", (e) => getPage(e.target.location.pathname, true));
+	window.addEventListener("popstate", (e) => getPage(e.target.location.href, true));
 	
 	setTimeout(() => dashboardLoader.classList.add("hide"), 200);
 });
@@ -32,10 +33,33 @@ async function getPage(href, skipCheck = false) {
 	
 	dashboardLoader.classList.remove("hide");
 	
+	switch(true) {
+		case href == '@':
+			skipCheck = true;
+			href = window.location.href;
+			break;
+		case href.startsWith('@'):
+			const newParameters = href.substring(1).split("&");
+			const urlParams = new URLSearchParams(window.location.search);
+			
+			newParameters.forEach(newParameter => {
+				newParameter = newParameter.split("=");
+				
+				if(newParameter[1] != 'REMOVE_QUERY') urlParams.set(newParameter[0], newParameter[1]);
+				else urlParams.delete(newParameter[0]);
+			});
+			
+			const urlParamsText = urlParams.toString();
+			
+			href = urlParamsText.length ? window.location.pathname + "?" + urlParamsText : window.location.pathname;
+			
+			break;
+	}
+	
 	const pageRequest = await fetch(href);
 	const response = await pageRequest.text();
 	
-	await changePage(response, href);
+	await changePage(response, href, skipCheck);
 	
 	dashboardLoader.classList.add("hide");
 	
@@ -56,6 +80,19 @@ async function postPage(href, form) {
 	}
 
 	dashboardLoader.classList.remove("hide");
+	
+	switch(true) {
+		case href == '@':
+			href = window.location.href;
+			break;
+		case href.startsWith('@'):
+			const newParameter = href.substring(1).split("=");
+			
+			const urlParams = new URLSearchParams(window.location.search);
+			urlParams.set(newParameter[0], newParameter[1])
+			
+			break;
+	}
 	
 	const pageRequest = await fetch(href, {
 		method: "POST",
@@ -196,9 +233,11 @@ async function updatePage() {
 		
 		index++;
 		
-		element.innerHTML = timeConverter(dateTime, true);
+		const textStyle = element.getAttribute("dashboard-full") != null ? "long" : "short";
+		
+		element.innerHTML = timeConverter(dateTime, textStyle);
 		intervals[index] = setInterval(async (event) => {
-			element.innerHTML = timeConverter(dateTime, true);
+			element.innerHTML = timeConverter(dateTime, textStyle);
 		}, 1000);
 		
 		element.onclick = () => {
@@ -223,10 +262,17 @@ async function updatePage() {
 		
 		element.onclick = () => player.interact(songID, songAuthor, songTitle, songURL);
 	});
+	
+	const timeElements = dashboardBody.querySelectorAll('[dashboard-time]');
+	timeElements.forEach(async (element) => {
+		const timeValue = element.getAttribute("dashboard-time");
+		
+		element.innerHTML = convertSeconds(timeValue);
+	});
 }
 
-function timeConverter(timestamp, min = false) {
-	if(!min) {
+function timeConverter(timestamp, textStyle = "short") {
+	if(!textStyle) {
 		const time = new Date(timestamp * 1000);
 		
 		const dayNumber = time.getDate();
@@ -284,11 +330,11 @@ function timeConverter(timestamp, min = false) {
 	
 	const options = {
 		numeric: "auto",
-		style: "short"
+		style: textStyle
 	}
 	
 	const rtf = new Intl.RelativeTimeFormat(localStorage.language.toLowerCase(), options);
-	return rtf.format(-1 * passedTime, unitType);
+	return capitalize(rtf.format(-1 * passedTime, unitType));
 }
 
 function copyElementContent(textToCopy) {
@@ -301,4 +347,37 @@ function copyElementContent(textToCopy) {
 		escapeMarkup: false,
 		className: "success",
 	}).showToast();
+}
+
+function showLevelPassword() {
+	const levelPasswordElement = document.querySelector("[dashboard-password]");
+	
+	const levelPasswordOld = levelPasswordElement.innerHTML;
+	const levelPasswordNew = levelPasswordElement.getAttribute("dashboard-password");
+	
+	levelPasswordElement.innerHTML = levelPasswordNew;
+	levelPasswordElement.setAttribute("dashboard-password", levelPasswordOld);
+}
+
+function capitalize(val) { // https://stackoverflow.com/a/1026087
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
+function convertSeconds(time) { // https://stackoverflow.com/a/36981712
+	if(time == 0 || isNaN(time)) return "0:00.000";
+
+	time = time / 1000;
+
+	var seconds = time % 60;
+	var foo = time - seconds;
+	var minutes = Math.round(foo / 60);
+	
+	if(seconds == 60) {
+		seconds = 0;
+		minutes++;
+	}
+	
+	if(seconds < 10) seconds = "0" + seconds.toString();
+	
+	return minutes + ":" + seconds;
 }

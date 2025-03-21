@@ -23,6 +23,9 @@
 
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule ^dashboard/messenger/(.+)$ dashboard/messenger/index.php?id=$1 [L,QSA]
+
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteRule ^dashboard/browse/levels/(.+)$ dashboard/browse/levels.php?id=$1 [L,QSA]
 	
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d

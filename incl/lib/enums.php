@@ -155,6 +155,7 @@ class ModeratorAction {
 	const LevelLockCommenting = 38;
 	const LevelSuggest = 41;
 	const LevelEventSet = 44;
+	const LevelScoreDelete = 45;
 
 	const PersonBan = 28;
 	

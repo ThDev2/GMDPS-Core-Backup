@@ -378,6 +378,7 @@ form.empty-fields .inputStyle:not([dashboard-not-required]):placeholder-shown {
 	
 	box-shadow: none !important;
 	background: #86868624 !important;
+	border: 1px solid #86868634;
 	
 	transition: 0.2s !important;
 	
@@ -613,8 +614,9 @@ nav::-webkit-scrollbar {
 
 .levelTitle {
 	display: flex;
-	gap: 7px;
 	align-items: center;
+
+	gap: 7px;
 }
 
 .levelTitle h2 {
@@ -627,7 +629,9 @@ nav::-webkit-scrollbar {
 	align-items: center;
 	
 	gap: 7px;
-	
+}
+
+.levelTitle h2 text[href] {
 	cursor: pointer;
 }
 
@@ -640,31 +644,31 @@ nav::-webkit-scrollbar {
 	height: 32px;
 }
 
-.levelTitle h2 text.username {
+.levelTitle h2 text.username[href] {
 	color: var(--href-color);
 	text-shadow: 0px 0px 20px var(--href-shadow-color);
 }
 
-.levelCard .vertical {
+.vertical {
 	display: flex;
 	flex-direction: column;
 	
 	width: 100%;
 	
-	gap: 5px;
+	gap: 10px;
 }
 
-.levelCard .horisontal {
+.horisontal {
 	display: flex;
 	
 	width: 100%;
 	
-	gap: 5px;
+	gap: 10px;
 }
 
 .levelCard .difficultyImage {
 	width: 150px;
-	height: max-content;
+	height: 150px;
 }
 
 .levelStats {
@@ -685,6 +689,7 @@ nav::-webkit-scrollbar {
 }
 
 .levelCard .stats {
+	display: flex;
 	justify-content: space-between;
 	align-items: flex-end;
 }
@@ -940,4 +945,261 @@ i[onclick] {
 .audioPlayer .songAuthor {
 	font-size: 21px;
 	color: #c0c0c0;
+}
+
+.levelPage .levelStats {
+	flex-direction: column;
+	align-items: flex-start;
+	
+	width: max-content;
+}
+
+.levelPage .levelStat {
+	font-size: 27px;
+	
+	padding: 15px;
+	border-radius: 15px;
+	
+	background-color: #86868614;
+	border: 1px solid #86868624;
+	
+	width: 100%;
+	
+	box-sizing: border-box;
+	
+	white-space: nowrap;
+}
+
+.levelPage .levelStat.several {
+	gap: 20px;
+	
+	justify-content: space-between;
+}
+
+.levelPage {
+	gap: 10px;
+}
+
+.levelPage .levelStat i {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	
+	width: 30px;
+	height: 30px;
+}
+
+.eyeButton {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	
+	width: max-content !important;
+	padding: 0px !important;
+	
+	background: transparent !important;
+}
+
+.eyeButton i {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	
+	font-size: 25px !important;
+	
+	width: max-content !important;
+	height: max-content !important;
+	
+	aspect-ratio: 1/1 !important;
+}
+
+.eyeButton:active {
+	scale: 90% !important;
+}
+
+.nothingOnPageDiv {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	
+	background-color: #86868614;
+	border: 1px solid #86868624;
+	
+	border-radius: 15px;
+	
+	width: 100%;
+	height: 100%;
+	
+	gap: 20px;
+}
+
+.commentsDiv {
+	display: flex;
+	flex-direction: column;
+	
+	gap: 10px;
+	
+	width: 100%;
+	min-height: 100%;
+}
+
+.nothingOnPageDiv .nothing-icon {
+	display: flex;
+	align-items: center;
+    
+	font-size: 150px;
+}
+
+.nothingOnPageDiv .nothing-icon.fa-ellipsis {
+	height: 50px;
+}
+
+.nothingOnPageDiv .arrow-icon {
+	display: flex;
+	align-items: center;
+	
+	width: 100%;
+	height: 0px;
+    
+	font-size: 100px;
+	
+	transform: translate(calc(-100% + 125px), 70.5px) rotate(180deg);
+	
+	pointer-events: none;
+}
+
+.nothingOnPageDiv .arrow-icon[dashboard-has-password=true] {
+	display: flex;
+	align-items: center;
+	
+	width: 100%;
+    
+	font-size: 100px;
+	
+	transform: translate(calc(-100% + 125px), 107.5px) rotate(180deg);
+}
+
+.levelTitle h3 {
+	font-size: 20px;
+	
+	opacity: 0.8;
+}
+
+.levelTitle .horisontal {
+	align-items: center;
+}
+
+.modeButtons {
+	display: flex;
+	
+	background-color: #86868614;
+	border: 1px solid #86868624;
+	border-radius: 10px;
+}
+
+.modeButtons button {
+	background: transparent !important;
+	
+	border-radius: 0px !important;
+}
+
+.modeButtons button:active {
+	scale: 100% !important;
+}
+
+.modeButtons button i {
+	font-size: 25px;
+	
+	transition: 0.2s;
+}
+
+.modeButtons button:active i {
+	scale: 90% !important;
+}
+
+.modeButtons button:not(:disabled):hover {
+	background-color: #86868624 !important;
+}
+
+.modeButtons button:first-child {
+	border-top-left-radius: 10px !important;
+	border-bottom-left-radius: 10px !important;
+}
+
+.modeButtons button:last-child {
+	border-top-right-radius: 10px !important;
+	border-bottom-right-radius: 10px !important;
+}
+
+.commentsDiv .pageDiv {
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+.levelTitle text[dashboard-date] {
+	font-size: 20px;
+    
+	opacity: 0.8;
+	
+	white-space: nowrap;
+}
+
+.commentStat {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+
+	gap: 7px;
+	
+	width: max-content;
+	
+	font-size: 25px;
+
+	white-space: nowrap;
+}
+
+.squareButton {
+	padding: 6px 10px !important;
+}
+
+.squareButton:active {
+	scale: 90% !important;
+}
+
+.emptySymbol {
+	margin-right: -7px;
+	
+	width: 0px;
+	height: 0px;
+	
+	opacity: 0;
+
+	white-space: nowrap;
+	
+	user-select: none;
+}
+
+.stats.small .commentStat {
+	font-size: 20px;
+}
+
+.levelTitle h1[dashboard-score] {
+	font-size: 30px;
+}
+
+.levelTitle h1[dashboard-score="1"] {
+	font-size: 33px;
+	
+	color: #feff8f;
+}
+
+.levelTitle h1[dashboard-score="2"] {
+	font-size: 31.5px;
+	
+	color: #d7d7d7;
+}
+
+.levelTitle h1[dashboard-score="3"] {
+	color: #ffd1a8;
 }

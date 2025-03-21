@@ -1,0 +1,39 @@
+<div class="levelCard">
+	<div class="vertical">
+		<div class="levelTitle">
+			<div class="horisontal">
+				<h2>%COMMENT_USER%</h2>
+				<h3 dashboard-show="%COMMENT_SHOW_PERCENT%">%percent%%</h3>
+			</div>
+			
+			<div class="commentStat">
+				<button dashboard-show="%COMMENT_CAN_DELETE%" class="squareButton" onclick="postPage('manage/deleteComment', 'comment%commentID%')"><i class="fa-solid fa-xmark"></i></button>
+				<form name="comment%commentID%">
+					<input type="hidden" name="commentID" value="%commentID%"></input>
+				</form>
+				
+				<text title="%TEXT_likes%">
+					<i class="fa-solid fa-thumbs-up"></i> %likes%
+				</text>
+				•
+				<text title="%TEXT_dislikes%">
+					<i class="fa-solid fa-thumbs-down"></i> %dislikes%
+				</text>
+			</div>
+		</div>
+		
+		<p class="levelDescription">%COMMENT_CONTENT%</p>
+		
+		<div class="stats small">
+			<div class="commentStat" title="ID">
+				<i class="fa-solid fa-comment"></i> 
+				<text dashboard-copy>%commentID%</text>
+			</div>
+			
+			<div class="commentStat" title="%TEXT_uploadDate%">
+				<i class="fa-solid fa-calendar"></i>
+				<text dashboard-date="%timestamp%"></text>
+			</div>
+		</div>
+	</div>
+</div>

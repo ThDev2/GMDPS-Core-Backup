@@ -208,16 +208,12 @@ class Dashboard {
 		
 		$page = self::renderTemplate('main', $mainPageData);
 		
-		// Debug line, report if i forget to remove it in release lol
-		echo '<script>console.log('.json_encode($mainPageData, true).');</script>';
-		
 		return $page;
 	}
 	
-	public static function renderErrorPage($pageTitle, $error) {
+	public static function renderErrorPage($pageTitle, $error, $pageBase = "../") {
 		global $dbPath;
 		require __DIR__."/../".$dbPath."config/dashboard.php";
-		$pageBase = "../";
 		
 		$dataArray = [
 			'INFO_TITLE' => self::string("errorTitle"),
@@ -246,8 +242,122 @@ class Dashboard {
 		return $templatePage;
 	}
 	
-	public static function getUsernameString($userName, $mainIcon, $attributes = '') {
-		return sprintf('<text class="username" title="'.sprintf(self::string('userProfile'), $userName).'" %3$s href="profile/%1$s">%1$s<img src="%2$s"></img></text>', $userName, $mainIcon, $attributes);
+	public static function getUsernameString($userName, $mainIcon, $badgeNumber, $attributes = '') {
+		return sprintf('<text class="username" title="'.sprintf(self::string('userProfile'), $userName).'" %3$s href="profile/%1$s">
+			<text class="emptySymbol">:(</text><img src="%2$s"></img>
+			%1$s
+			'.($badgeNumber ? '<img src="incl/icons/badge_%4$s.png"></img>' : '').'
+		</text>', $userName, $mainIcon, $attributes, $badgeNumber);
+	}
+	
+	public static function renderLevelCard($level) {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		$user = Library::getUserByID($level['userID']);
+	
+		$userAttributes = [];
+		$levelLengths = ['Tiny', 'Short', 'Medium', 'Long', 'XL', 'Platformer'];
+		
+		$userPerson = [
+			'accountID' => $user['extID'],
+			'userID' => $user['userID'],
+			'IP' => $user['IP'],
+		];
+		$iconKit = self::getUserIconKit($userID);
+		$userAppearance = Library::getPersonCommentAppearance($userPerson);
+		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
+		
+		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+		
+		$song = $level['songID'] ? Library::getSongByID($level['songID']) : Library::getAudioTrack($level['audioTrack']);
+		
+		$level['LEVEL_TITLE'] = sprintf(self::string('levelTitle'), $level['levelName'], self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes)));
+		$level['LEVEL_DESCRIPTION'] = htmlspecialchars(Escape::url_base64_decode($level['levelDesc'])) ?: "<i>".self::string('noDescription')."</i>";
+		$level['LEVEL_DIFFICULTY_IMAGE'] = Library::getLevelDifficultyImage($level);
+		
+		$level['LEVEL_LENGTH'] = $levelLengths[$level['levelLength']];
+		$level['LEVEL_LIKES'] = abs($level['likes'] - $level['dislikes']);
+		$level['LEVEL_IS_DISLIKED'] = $level['dislikes'] > $level['likes'] ? 'true' : 'false';
+		
+		if($song) $level['LEVEL_SONG'] = $song['authorName']." - ".$song['name'].(isset($song['ID']) ? " • <text dashboard-copy>".$song['ID'].'</text>' : '');
+		else $level['LEVEL_SONG'] = self::string("unknownSong");
+		$level['LEVEL_SONG_ID'] = $song['ID'] ?: '';
+		$level['LEVEL_SONG_AUTHOR'] = $song['authorName'] ?: '';
+		$level['LEVEL_SONG_TITLE'] = $song['name'] ?: '';
+		$level['LEVEL_SONG_URL'] = urlencode(urldecode($song['download'])) ?: '';
+		$level['LEVEL_IS_CUSTOM_SONG'] = isset($song['ID']) ? 'true' : 'false';
+		
+		$level['LEVEL_BUTTON_ONCLICK'] = 'getPage(\'browse/levels/'.$level['levelID'].'\')';
+		
+		return self::renderTemplate('components/level', $level);
+	}
+	
+	public static function renderCommentCard($comment, $person) {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		
+		$user = Library::getUserByID($comment['userID']);
+		
+		$userAttributes = [];
+		
+		$userPerson = [
+			'accountID' => $user['extID'],
+			'userID' => $user['userID'],
+			'IP' => $user['IP'],
+		];
+		$iconKit = self::getUserIconKit($userID);
+		$userAppearance = Library::getPersonCommentAppearance($userPerson);
+		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
+		
+		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+		
+		$comment['COMMENT_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
+		$comment['COMMENT_CONTENT'] = htmlspecialchars(Escape::url_base64_decode($comment['comment']));
+		
+		$comment['COMMENT_SHOW_PERCENT'] = $comment['percent'] > 0 ? 'true' : 'false';
+		
+		$comment['COMMENT_CAN_DELETE'] = ($person['userID'] == $user['userID'] || Library::checkPermission($person, "actionDeleteComment")) ? 'true' : 'false';
+			
+		return self::renderTemplate('components/comment', $comment);
+	}
+	
+	public static function renderScoreCard($score, $person) {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		
+		$user = Library::getUserByID($score['userID']);
+		
+		$userAttributes = [];
+		
+		$userPerson = [
+			'accountID' => $user['extID'],
+			'userID' => $user['userID'],
+			'IP' => $user['IP'],
+		];
+		$iconKit = self::getUserIconKit($userID);
+		$userAppearance = Library::getPersonCommentAppearance($userPerson);
+		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
+		
+		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+		
+		$score['SCORE_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
+		
+		$score['SCORE_IS_LEADER'] = $score['SCORE_NUMBER'] < 4 ? 'true' : 'false';
+		$score['SCORE_CAN_DELETE'] = ($person['accountID'] == $user['accountID'] || Library::checkPermission($person, "dashboardDeleteLeaderboards")) ? 'true' : 'false';
+		
+		$score['SCORE_CAN_SEE_HIDDEN'] = ($person['accountID'] == $user['accountID'] || Library::checkPermission($person, "dashboardModTools")) ? 'true' : 'false';
+		if($score['SCORE_CAN_SEE_HIDDEN'] == 'false') {
+			$score['clicks'] = 'Smartest one here? :trollface:';
+		}
+		
+		if(isset($score['uploadDate'])) $score['timestamp'] = $score['uploadDate'];
+		
+		if(isset($score['ID'])) $score['scoreID'] = $score['ID'];
+			
+		return self::renderTemplate('components/score', $score);
 	}
 }
 ?>

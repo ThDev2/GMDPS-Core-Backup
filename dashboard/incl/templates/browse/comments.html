@@ -1,9 +1,11 @@
-<div class="wideBox">
-	%LEVEL_PAGE%
+<div class="horisontal">
+	<div class="modeButtons">
+		<button type="button" title="%TEXT_sortByLikes%" onclick="getPage('@page=REMOVE_QUERY&mode=REMOVE_QUERY')"><i class="fa-solid fa-thumbs-up"></i></button>
+		<button type="button" title="%TEXT_sortByTime%" onclick="getPage('@page=REMOVE_QUERY&mode=0')"><i class="fa-solid fa-clock"></i></button>
+	</div>
 	
 	<div class="pageDiv">
-		<p>%LEVEL_PAGE_TEXT%</p>
-		
+		<p>%COMMENT_PAGE_TEXT%</p>
 		<div class="pageButtons">
 			<button dashboard-disable="%IS_FIRST_PAGE%" class="pageButton" type="button" onclick="%FIRST_PAGE_BUTTON%">
 				<i class="fa-solid fa-backward"></i>
@@ -23,3 +25,10 @@
 		</div>
 	</div>
 </div>
+
+<div class="nothingOnPageDiv" dashboard-show="%LEVEL_NO_COMMENTS%">
+	<i class="fa-solid fa-comment-slash nothing-icon"></i>
+	<h1>%TEXT_noComments%</h1>
+</div>
+
+%ADDITIONAL_PAGE%

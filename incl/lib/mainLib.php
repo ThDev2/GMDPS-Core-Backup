@@ -5,7 +5,7 @@ class Library {
 		Account-related functions
 	*/
 	
-	public function createAccount($userName, $password, $repeatPassword, $email, $repeatEmail) {
+	public function createAccount($userName, $accountPassword, $repeatPassword, $email, $repeatEmail) {
 		require __DIR__."/connection.php";
 		require __DIR__."/../../config/mail.php";
 		require_once __DIR__."/security.php";
@@ -26,9 +26,9 @@ class Library {
 		
 		if(strlen($userName) > 20 || is_numeric($userName) || strpos($userName, " ") !== false || self::stringViolatesFilter($userName, 0)) return ["success" => false, "error" => RegisterError::InvalidUserName];
 		if(strlen($userName) < 3) return ["success" => false, "error" => RegisterError::UserNameIsTooShort];
-		if(strlen($password) < 6) return ["success" => false, "error" => RegisterError::PasswordIsTooShort];
-		if($password !== $repeatPassword) return ["success" => false, "error" => RegisterError::PasswordsDoNotMatch];
-		if($email !== $repeatEmail) return ["success" => false, "error" => RegisterError::EmailsDoNotMatch];
+		if(strlen($accountPassword) < 6) return ["success" => false, "error" => RegisterError::PasswordIsTooShort];
+		if($accountPassword != $repeatPassword) return ["success" => false, "error" => RegisterError::PasswordsDoNotMatch];
+		if($email != $repeatEmail) return ["success" => false, "error" => RegisterError::EmailsDoNotMatch];
 		if(!filter_var($email, FILTER_VALIDATE_EMAIL)) return ["success" => false, "error" => RegisterError::InvalidEmail];
 		
 		$userNameExists = self::getAccountIDWithUserName($userName);
@@ -39,10 +39,10 @@ class Library {
 			if($emailExists) return ["success" => false, "error" => RegisterError::EmailIsInUse];
 		}
 		
-		$gjp2 = Security::GJP2FromPassword($password);
+		$gjp2 = Security::GJP2FromPassword($accountPassword);
 		$createAccount = $db->prepare("INSERT INTO accounts (userName, password, email, registerDate, isActive, gjp2, salt)
 			VALUES (:userName, :password, :email, :registerDate, :isActive, :gjp2, :salt)");
-		$createAccount->execute([':userName' => $userName, ':password' => Security::hashPassword($password), ':email' => $email, ':registerDate' => time(), ':isActive' => $preactivateAccounts ? 1 : 0, ':gjp2' => Security::hashPassword($gjp2), ':salt' => $salt]);
+		$createAccount->execute([':userName' => $userName, ':password' => Security::hashPassword($accountPassword), ':email' => $email, ':registerDate' => time(), ':isActive' => $preactivateAccounts ? 1 : 0, ':gjp2' => Security::hashPassword($gjp2), ':salt' => $salt]);
 		
 		$accountID = $db->lastInsertId();
 		$userID = self::createUser($userName, $accountID, $IP);
@@ -373,8 +373,8 @@ class Library {
 		$getComment = $getComment->fetch();
 		if(!$getComment) return false;
 		
-		$deleteComment = $db->prepare("DELETE FROM acccomments WHERE commentID = :commentID");
-		$deleteComment->execute([':commentID' => $commentID]);
+		$deleteAccountComment = $db->prepare("DELETE FROM acccomments WHERE commentID = :commentID");
+		$deleteAccountComment->execute([':commentID' => $commentID]);
 		
 		self::logAction($person, Action::AccountCommentDeletion, $userName, $getComment['comment'], $accountID, $getComment['commentID'], $getComment['likes'], $getComment['dislikes']);
 		
@@ -2059,17 +2059,17 @@ class Library {
 		
 		$userID = $person['userID'];
 		
-		$getComment = $db->prepare("SELECT * FROM comments WHERE userID = :userID AND commentID = :commentID");
-		$getComment->execute([':userID' => $userID, ':commentID' => $commentID]);
-		$getComment = $getComment->fetchColumn();
-		if(!$getComment && !self::checkPermission($person, 'actionDeleteComment')) return false;
+		$getComment = $db->prepare("SELECT * FROM comments WHERE commentID = :commentID");
+		$getComment->execute([':commentID' => $commentID]);
+		$getComment = $getComment->fetch();
+		if(!$getComment || ($getComment['userID'] != $userID && !self::checkPermission($person, 'actionDeleteComment'))) return false;
 		
 		$user = self::getUserByID($getComment['userID']);
 		
 		$deleteComment = $db->prepare("DELETE FROM comments WHERE commentID = :commentID");
 		$deleteComment->execute([':commentID' => $commentID]);
 		
-		self::logAction($person, Action::CommentDeletion, $user['userName'], $getComment['comment'], $user['extID'], $getComment['commentID'], $getComment['likes'] - $getComment['dislikes'], $getComment['levelID']);
+		self::logAction($person, Action::CommentDeletion, $person['userName'], $getComment['comment'], $user['extID'], $getComment['commentID'], $getComment['likes'] - $getComment['dislikes'], $getComment['levelID']);
 		
 		return true;
 	}
@@ -2311,6 +2311,15 @@ class Library {
 			return false;
 		}
 		
+		$progressesPercent = 0;
+		$progressesArray = explode(",", $progresses);
+		if(!empty($progressesArray)) foreach($progressesArray AS &$progressValue) $progressesPercent += $progressValue;
+
+		if($percent != $progressesPercent) {
+			self::banPerson(0, $accountID, "Person tried to post level score with invalid progresses value. (".$percent.", \"".$progresses."\" -> ".$progressesPercent.")", 0, 0, 2147483647);
+			return false;
+		}
+		
 		$oldPercent = $db->prepare("SELECT percent FROM levelscores WHERE accountID = :accountID AND levelID = :levelID AND dailyID ".$condition." 0");
 		$oldPercent->execute([':accountID' => $accountID, ':levelID' => $levelID]);
 		$oldPercent = $oldPercent->fetchColumn();
@@ -2523,6 +2532,50 @@ class Library {
         $diffIcon = $diffArray[strtolower($difficulty)] ?? 'na';
 		
 		return $difficultiesURL.$starsIcon.'/'.$diffIcon.'.png';
+	}
+	
+	public static function getLevelStatsCount($levelID) {
+		require __DIR__."/connection.php";
+		
+		if(isset($GLOBALS['core_cache']['levelStatsCount'][$levelID])) return $GLOBALS['core_cache']['levelStatsCount'][$levelID];
+		
+		$level = self::getLevelByID($levelID);
+		if(!$level) {
+			$GLOBALS['core_cache']['levelStatsCount'][$levelID] = ['comments' => 0, 'scores' => 0];
+			return ['comments' => 0, 'scores' => 0];
+		}
+		
+		$commentsCount = $db->prepare("SELECT count(*) FROM levels INNER JOIN comments ON comments.levelID = levels.levelID WHERE levels.levelID = :levelID AND levels.isDeleted = 0");
+		$commentsCount->execute([':levelID' => $levelID]);
+		$commentsCount = $commentsCount->fetchColumn();
+		
+		$queryText = self::getBannedPeopleQuery(0, true);
+		
+		$levelScoresCount = $db->prepare("SELECT count(*) FROM ".($level['levelLength'] == 5 ? 'plat' : 'level')."scores INNER JOIN users ON users.extID = ".($level['levelLength'] == 5 ? 'plat' : 'level')."scores.accountID WHERE ".$queryText." levelID = :levelID");
+		$levelScoresCount->execute([':levelID' => $levelID]);
+		$levelScoresCount = $levelScoresCount->fetchColumn();
+		
+		$GLOBALS['core_cache']['levelStatsCount'][$levelID] = ['comments' => $commentsCount, 'scores' => $levelScoresCount];
+		
+		return ['comments' => $commentsCount, 'scores' => $levelScoresCount];
+	}
+	
+	public static function deleteScore($person, $scoreID, $isPlatformer) {
+		require __DIR__."/connection.php";
+		
+		$accountID = $person['accountID'];
+		
+		$getScore = $db->prepare("SELECT * FROM ".($isPlatformer ? 'plat' : 'level')."scores WHERE ".($isPlatformer ? 'ID' : 'scoreID')." = :scoreID");
+		$getScore->execute([':scoreID' => $scoreID]);
+		$getScore = $getScore->fetch();
+		if(!$getScore || ($accountID != $getScore['accountID'] && !Library::checkPermission($person, "dashboardDeleteLeaderboards"))) return false;
+		
+		$deleteScore = $db->prepare("DELETE FROM ".($isPlatformer ? 'plat' : 'level')."scores WHERE ".($isPlatformer ? 'ID' : 'scoreID')." = :scoreID");
+		$deleteScore->execute([':scoreID' => $scoreID]);
+		
+		self::logAction($person, ModeratorAction::LevelScoreDelete, $getScore['percent'] ?: '', $getScore['attempts'] ?: '', $getScore['coins'] ?: '', $getScore['clicks'] ?: '', $getScore['time'] ?: '', $getScore['points'] ?: '');
+		
+		return true;
 	}
 	
 	/*
