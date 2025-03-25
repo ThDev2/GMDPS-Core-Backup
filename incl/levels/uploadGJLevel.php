@@ -11,35 +11,35 @@ if(!$person["success"]) exit(CommonError::InvalidRequest);
 
 $gameVersion = Escape::number($_POST["gameVersion"]);
 $levelID = Escape::number($_POST["levelID"]);
-$levelName = Escape::latin($_POST["levelName"]);
+$levelName = Escape::latin($_POST["levelName"]) ?: 'Unnamed level';
 $levelDesc = $gameVersion >= 20 ? Escape::translit(Escape::text(Escape::url_base64_decode($_POST["levelDesc"]))) : Escape::translit(Escape::text($_POST["levelDesc"]));
 $levelDesc = Escape::url_base64_encode(Library::escapeDescriptionCrash($levelDesc));
 $levelLength = Escape::number($_POST["levelLength"]);
 $audioTrack = Escape::number($_POST["audioTrack"]);
 
 $binaryVersion = !empty($_POST["binaryVersion"]) ? Escape::number($_POST["binaryVersion"]) : 0;
-$auto = !empty($_POST["auto"]) ? Escape::number($_POST["auto"]) : 0;
+$auto = !empty($_POST["auto"]) ? Security::limitValue(0, Escape::number($_POST["auto"]), 1) : 0;
 $original = !empty($_POST["original"]) ? Escape::number($_POST["original"]) : 0;
-$twoPlayer = !empty($_POST["twoPlayer"]) ? Escape::number($_POST["twoPlayer"]) : 0;
+$twoPlayer = !empty($_POST["twoPlayer"]) ? Security::limitValue(0, Escape::number($_POST["twoPlayer"]), 1) : 0;
 $songID = !empty($_POST["songID"]) ? Escape::number($_POST["songID"]) : 0;
 $objects = !empty($_POST["objects"]) ? Escape::number($_POST["objects"]) : 0;
-$coins = !empty($_POST["coins"]) ? Escape::number($_POST["coins"]) : 0;
-$requestedStars = !empty($_POST["requestedStars"]) ? Escape::number($_POST["requestedStars"]) : 0;
+$coins = !empty($_POST["coins"]) ? Security::limitValue(0, Escape::number($_POST["coins"]), 3) : 0;
+$requestedStars = !empty($_POST["requestedStars"]) ? Security::limitValue(0, Escape::number($_POST["requestedStars"]), 10) : 0;
 $extraString = !empty($_POST["extraString"]) ? Escape::text($_POST["extraString"]) : "29_29_29_40_29_29_29_29_29_29_29_29_29_29_29_29";
-$levelString = Escape::text($_POST["levelString"]);
+$levelString = Escape::text($_POST["levelString"]) ?: '';
 $levelInfo = !empty($_POST["levelInfo"]) ? Escape::text($_POST["levelInfo"]) : "";
 switch(true) {
 	case isset($_POST['unlisted2']):
-		$unlisted = Escape::number($_POST['unlisted2']);
+		$unlisted = Security::limitValue(0, Escape::number($_POST["unlisted2"]), 2);
 		break;
 	case isset($_POST['unlisted1']):
-		$unlisted = Escape::number($_POST['unlisted1']);
+		$unlisted = Security::limitValue(0, Escape::number($_POST["unlisted1"]), 2);
 		break;
 	default:
-		$unlisted = Escape::number($_POST['unlisted']) ?: 0;
+		$unlisted = Security::limitValue(0, Escape::number($_POST["unlisted"]), 2);
 		break;
 }
-$isLDM = !empty($_POST["ldm"]) ? Escape::number($_POST["ldm"]) : 0;
+$isLDM = !empty($_POST["ldm"]) ? Security::limitValue(0, Escape::number($_POST["ldm"]), 1) : 0;
 $wt = !empty($_POST["wt"]) ? Escape::number($_POST["wt"]) : 0;
 $wt2 = !empty($_POST["wt2"]) ? Escape::number($_POST["wt2"]) : 0;
 $settingsString = !empty($_POST["settingsString"]) ? Escape::text($_POST["settingsString"]) : "";
@@ -77,7 +77,7 @@ $levelDetails = [
 	'password' => $password
 ];
 
-$uploadLevel = $lib->uploadLevel($person, $levelID, $levelName, $levelString, $levelDetails);
+$uploadLevel = Library::uploadLevel($person, $levelID, $levelName, $levelString, $levelDetails);
 if(!$uploadLevel['success']) exit(CommonError::InvalidRequest);
 
 exit($uploadLevel['levelID']);

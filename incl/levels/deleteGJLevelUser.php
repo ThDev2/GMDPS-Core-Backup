@@ -11,7 +11,7 @@ $userID = $person['userID'];
 
 $levelID = Escape::number($_POST['levelID']);
 
-$level = Library::getListByID($levelID);
+$level = Library::getLevelByID($levelID);
 if(!$level || ($level['userID'] != $userID && !Library::checkPermission($person, 'commandDelete'))) exit(CommonError::InvalidRequest);
 
 Library::deleteLevel($levelID, $person);

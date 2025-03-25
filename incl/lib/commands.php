@@ -3,6 +3,7 @@ class Commands {
 	public static function processLevelCommand($comment, $level, $person) {
 		require __DIR__.'/../../config/misc.php';
 		require_once __DIR__.'/mainLib.php';
+		require_once __DIR__.'/security.php';
 		require_once __DIR__.'/exploitPatch.php';
 		
 		if(substr($comment, 0, 1) != '!') return false;
@@ -24,8 +25,8 @@ class Commands {
 					$difficulty .= " ".Escape::latin($commentSplit[1 + $increaseSplit]);
 				}
 				$stars = Escape::number($commentSplit[2 + $increaseSplit]);
-				$verifyCoins = Escape::number($commentSplit[3 + $increaseSplit]);
-				$featured = Escape::number($commentSplit[4 + $increaseSplit]);
+				$verifyCoins = Security::limitValue(0, Escape::number($commentSplit[3 + $increaseSplit]), 1);
+				$featured = Security::limitValue(0, Escape::number($commentSplit[4 + $increaseSplit]), 4);
 				
 				if(!$difficulty || !is_numeric($stars) || !is_numeric($verifyCoins) || !is_numeric($featured)) {
 					return Library::textColor("Incorrect usage!", Color::Red).PHP_EOL
@@ -269,7 +270,7 @@ class Commands {
 				
 				if($level['levelName'] == $newLevelName) return Library::textColor($level['levelName'], Color::SkyBlue)." ".Library::textColor("already has", Color::Green)." this name!";
 				
-				if(Library::stringViolatesFilter($newLevelName, 3)) return "New level name contains a ".Library::textColor("bad", Color::Red)." word.";
+				if(Security::checkFilterViolation($person, $newLevelName, 3)) return "New level name contains a ".Library::textColor("bad", Color::Red)." word.";
 				
 				Library::renameLevel($levelID, $person, $newLevelName);
 				
@@ -326,7 +327,7 @@ class Commands {
 				
 				if(Escape::url_base64_decode($level['levelDesc']) == $newLevelDesc) return Library::textColor($level['levelName'], Color::SkyBlue)." ".Library::textColor("already has", Color::Green)." this description!";
 				
-				if(Library::stringViolatesFilter($newLevelDesc, 3)) return "New level description contains a ".Library::textColor("bad", Color::Red)." word.";
+				if(Security::checkFilterViolation($person, $newLevelDesc, 3)) return "New level description contains a ".Library::textColor("bad", Color::Red)." word.";
 				
 				Library::changeLevelDescription($levelID, $person, $newLevelDesc);
 				
@@ -430,7 +431,7 @@ class Commands {
 					$increaseSplit++;
 					$difficulty .= " ".Escape::latin($commentSplit[2 + $increaseSplit]);
 				}
-				$featured = Escape::number($commentSplit[3 + $increaseSplit]);
+				$featured = Security::limitValue(0, Escape::number($commentSplit[3 + $increaseSplit]), 1);
 				$levelsCount = Escape::number($commentSplit[4 + $increaseSplit]);
 				
 				if(empty($levelsCount)) $levelsCount = count(explode(',', $list['listlevels']));
@@ -547,7 +548,7 @@ class Commands {
 				
 				if($list['listName'] == $newListName) return Library::textColor($list['listName'], Color::SkyBlue)." ".Library::textColor("already has", Color::Green)." this name!";
 				
-				if(Library::stringViolatesFilter($newLevelName, 3)) return "New list name contains a ".Library::textColor("bad", Color::Red)." word.";
+				if(Security::checkFilterViolation($person, $newLevelName, 3)) return "New list name contains a ".Library::textColor("bad", Color::Red)." word.";
 				
 				Library::renameList($listID, $person, $newListName);
 				
@@ -566,7 +567,7 @@ class Commands {
 				
 				if(Escape::url_base64_decode($list['listDesc']) == $newListDesc) return Library::textColor($list['listName'], Color::SkyBlue)." ".Library::textColor("already has", Color::Green)." this description!";
 				
-				if(Library::stringViolatesFilter($newLevelName, 3)) return "New list description contains a ".Library::textColor("bad", Color::Red)." word.";
+				if(Security::checkFilterViolation($person, $newLevelName, 3)) return "New list description contains a ".Library::textColor("bad", Color::Red)." word.";
 				
 				Library::changeListDescription($listID, $person, $newListDesc);
 				

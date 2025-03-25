@@ -9,16 +9,16 @@ $person = $sec->loginPlayer();
 if(!$person["success"]) exit(CommonError::InvalidRequest);
 
 $listID = Escape::number($_POST["listID"]);
-$listName = !empty(Escape::text($_POST["listName"])) ? Escape::text($_POST["listName"]) : "Unnamed list";
-$listDesc = Escape::text($_POST["listDesc"]);
+$listName = Escape::latin($_POST["listName"]) ?: "Unnamed list";
+$listDesc = Escape::text($_POST["listDesc"]) ?: '';
 $listLevels = Escape::multiple_ids($_POST["listLevels"]);
-$difficulty = Escape::number($_POST["difficulty"]);
+$difficulty = Security::limitValue(-1, Escape::number($_POST["difficulty"]), 10);
 $original = Escape::number($_POST["original"]);
-$unlisted = Escape::number($_POST["unlisted"]);
+$unlisted = Security::limitValue(0, Escape::number($_POST["unlisted"]), 2);
 
 if(count(explode(',', $listLevels)) == 0) exit(CommonError::InvalidRequest);
 
-if(Library::stringViolatesFilter($listName, 3) || Library::stringViolatesFilter($listDesc, 3)) exit(CommonError::InvalidRequest);
+if(Security::checkFilterViolation($person, $listName, 3) || Security::checkFilterViolation($person, $listDesc, 3)) exit(CommonError::InvalidRequest);
 
 $listDetails = [
 	'listName' => $listName,

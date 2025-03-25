@@ -140,7 +140,9 @@ class Security {
 				$userID = Escape::number($_POST['uuid']);
 				$accountID = Library::getAccountID($userID);
 				break;
-			case empty($_POST['password']) && empty($_POST['gjp']) && empty($_POST['gjp2']) && empty($_POST['auth']) && $unregisteredSubmissions:
+			case empty($_POST['password']) && empty($_POST['gjp']) && empty($_POST['gjp2']) && empty($_POST['auth']):
+				if(!$unregisteredSubmissions) return ["success" => true, "accountID" => "0", "userID" => "0", "userName" => "Undefined", "IP" => $IP];
+				
 				$udid = isset($_POST['udid']) ? Escape::text($_POST['udid']) : '';
 				$userName = isset($_POST['userName']) ? Escape::latin($_POST['userName']) : "Undefined";
 				$accountID = isset($_POST['accountID']) ? Escape::number($_POST['accountID']) : 0;
@@ -282,6 +284,7 @@ class Security {
 		
 		if($userID == 0) {
 			$userID = Library::createUser($userName, "u".$unregisteredID, $IP);
+			if(!$userID) return ['unregisteredID' => $unregisteredID, 'userID' => 0];
 		
 			$registerUDID = $db->prepare("UPDATE udids SET userID = :userID WHERE ID = :unregisteredID");
 			$registerUDID->execute([':userID' => $userID, ':unregisteredID' => $unregisteredID]);
@@ -358,6 +361,192 @@ class Security {
 		$assignAuthToken->execute([':auth' => $auth, ':accountID' => $accountID]);
 		
 		return true;
+	}
+	
+	public static function checkRateLimits($person, $type) {
+		require __DIR__."/connection.php";
+		require __DIR__."/../../config/security.php";
+		require_once __DIR__."/mainLib.php";
+		require_once __DIR__."/enums.php";
+		
+		$userID = $person['userID'];
+		$IP = $person['IP'];
+		
+		switch($type) {
+			case 0:
+				if(!$globalLevelsUploadDelay) return true;
+			
+				$lastUploadedLevel = $db->prepare('SELECT count(*) FROM levels WHERE uploadDate >= :time AND isDeleted = 0');
+				$lastUploadedLevel->execute([':time' => time() - $globalLevelsUploadDelay]);
+				$lastUploadedLevel = $lastUploadedLevel->fetchColumn();
+				
+				if($lastUploadedLevel) {
+					Library::logAction($person, Action::GlobalLevelUploadRateLimit);
+					
+					$searchFilters = ["type = ".Action::GlobalLevelUploadRateLimit, 'timestamp >= '.(time() - $globalLevelsUploadDelay)];
+					$isRateLimited = Library::getPersonActions($person, $searchFilters);
+					
+					if(count($isRateLimited) > ($globalLevelsUploadDelay * $rateLimitBanMultiplier)) {
+						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for globally uploading level. (".count($isRateLimited)." out of ".($globalLevelsUploadDelay * $rateLimitBanMultiplier).")", 2, 2, (time() + $rateLimitBanTime));
+					}
+					
+					return false;
+				}
+				
+				return true;
+			case 1:
+				if(!$perUserLevelsUploadDelay) return true;
+			
+				$lastUploadedLevelByUser = $db->prepare('SELECT count(*) FROM levels WHERE uploadDate >= :time AND isDeleted = 0 AND (userID = :userID OR IP = :IP)');
+				$lastUploadedLevelByUser->execute([':time' => time() - $perUserLevelsUploadDelay, ':userID' => $userID, ':IP' => $IP]);
+				$lastUploadedLevelByUser = $lastUploadedLevelByUser->fetchColumn();
+				
+				if($lastUploadedLevelByUser) {
+					Library::logAction($person, Action::PerUserLevelUploadRateLimit);
+					
+					$searchFilters = ["type = ".Action::PerUserLevelUploadRateLimit, 'timestamp >= '.(time() - $perUserLevelsUploadDelay)];
+					$isRateLimited = Library::getPersonActions($person, $searchFilters);
+					
+					if(count($isRateLimited) > ($perUserLevelsUploadDelay * $rateLimitBanMultiplier)) {
+						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for uploading levels per user. (".count($isRateLimited)." out of ".($perUserLevelsUploadDelay * $rateLimitBanMultiplier).")", 2, 2, (time() + $rateLimitBanTime));
+					}
+					
+					return false;
+				}
+				
+				return true;
+			case 2:
+				if(!$accountsRegisterDelay) return true;
+			
+				$checkRegister = $db->prepare("SELECT count(*) FROM accounts WHERE registerDate >= :time");
+				$checkRegister->execute([':time' => time() - $accountsRegisterDelay]);
+				$checkRegister = $checkRegister->fetchColumn();
+				
+				if($checkRegister) {
+					Library::logAction($person, Action::AccountRegisterRateLimit);
+					
+					$searchFilters = ["type = ".Action::AccountRegisterRateLimit, 'timestamp >= '.(time() - $accountsRegisterDelay)];
+					$isRateLimited = Library::getPersonActions($person, $searchFilters);
+					
+					if(count($isRateLimited) > ($accountsRegisterDelay * $rateLimitBanMultiplier)) {
+						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for registering accounts. (".count($isRateLimited)." out of ".($accountsRegisterDelay * $rateLimitBanMultiplier).")", 4, 2, (time() + $rateLimitBanTime));
+					}
+					
+					return false;
+				}
+				
+				return true;
+			case 3:
+				if(!$usersCreateDelay) return true;
+			
+				$actionsFilter = ['type = '.Action::UserCreate, 'timestamp >= '.(time() - $usersCreateDelay)];
+				$checkUserCreate = Library::getActions($actionsFilter);
+				
+				if($checkUserCreate) {
+					Library::logAction($person, Action::UserCreateRateLimit);
+					
+					$searchFilters = ["type = ".Action::UserCreateRateLimit, 'timestamp >= '.(time() - $usersCreateDelay)];
+					$isRateLimited = Library::getPersonActions($person, $searchFilters);
+					
+					if(count($isRateLimited) > ($usersCreateDelay * $rateLimitBanMultiplier)) {
+						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for creating users. (".count($isRateLimited)." out of ".($usersCreateDelay * $rateLimitBanMultiplier).")", 4, 2, (time() + $rateLimitBanTime));
+					}
+					
+					return false;
+				}
+				
+				return true;
+			case 4:
+				$searchFilters = ["type = ".Action::FilterRateLimit, 'timestamp >= '.(time() - 60)];
+				$isRateLimited = Library::getPersonActions($person, $searchFilters);
+				
+				if(count($isRateLimited) > (20 * $rateLimitBanMultiplier)) {
+					Library::banPerson(0, $IP, "Person exceeded allowed rate limit for filters. (".count($isRateLimited)." out of ".(20 * $rateLimitBanMultiplier).")", 3, 2, (time() + $rateLimitBanTime));
+					return false;
+				}
+				
+				return true;
+		}
+	}
+	
+	public static function checkFilterViolation($person, $content, $type) {
+		require __DIR__.'/../../config/security.php';
+		require_once __DIR__.'/exploitPatch.php';
+		require_once __DIR__.'/mainLib.php';
+		
+		switch($type) {
+			case 0:
+				$filterMode = $filterUsernames;
+				$filterBannedWords = $bannedUsernames;
+				$whitelistedWords = $whitelistedUsernames;
+				break;
+			case 1:
+				$filterMode = $filterClanNames;
+				$filterBannedWords = $bannedClanNames;
+				$whitelistedWords = $whitelistedClanNames;
+				break;
+			case 2:
+				$filterMode = $filterClanTags;
+				$filterBannedWords = $bannedClanTags;
+				$whitelistedWords = $whitelistedClanTags;
+				break;
+			case 3:
+				$filterMode = $filterCommon;
+				$filterBannedWords = $bannedCommon;
+				$whitelistedWords = $whitelistedCommon;
+				break;
+		}
+		
+		if($filterMode) {
+			switch($filterMode) {
+				case 1:
+					if(in_array(strtolower($content), $filterBannedWords) && !in_array(strtolower($content), $whitelistedWords)) {
+						Library::logAction($person, Action::FilterRateLimit);
+						self::checkRateLimits($person, 4);
+						
+						return true;
+					}
+					break;
+				case 2:
+					$contentSplit = explode(' ', $content);
+					
+					// This *may* be not very efficient... I didn't test.
+					foreach($contentSplit AS &$string) {
+						$string = Escape::prepare_for_checking($string);
+						if(empty($string)) continue;
+						
+						foreach($filterBannedWords AS &$bannedWord) {
+							$bannedWord = Escape::prepare_for_checking($bannedWord);
+							if(empty($bannedWord)) continue;
+							
+							if(mb_strpos($string, $bannedWord) !== false) {
+								foreach($whitelistedWords AS &$whitelistedWord) {
+									$whitelistedWord = Escape::prepare_for_checking($whitelistedWord);
+									if(empty($whitelistedWord)) continue;
+									
+									if(mb_strpos($string, $whitelistedWord) !== false) return false;
+								}
+								
+								Library::logAction($person, Action::FilterRateLimit);
+								self::checkRateLimits($person, 4);
+								
+								return true;
+							}
+						}
+					}
+					break;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static function limitValue($min, $value, $max) {
+		$valuesArray = [$min, (int)$value, $max];
+		
+		rsort($valuesArray);
+		
+		return $valuesArray[1];
 	}
 }
 ?>

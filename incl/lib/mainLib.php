@@ -5,7 +5,7 @@ class Library {
 		Account-related functions
 	*/
 	
-	public function createAccount($userName, $accountPassword, $repeatPassword, $email, $repeatEmail) {
+	public static function createAccount($userName, $accountPassword, $repeatPassword, $email, $repeatEmail) {
 		require __DIR__."/connection.php";
 		require __DIR__."/../../config/mail.php";
 		require_once __DIR__."/security.php";
@@ -17,14 +17,17 @@ class Library {
 		
 		if(Automod::isAccountsDisabled(0)) return ["success" => false, "error" => CommonError::Automod];
 		
-		if($accountsRegisterDelay) {
-			$checkRegister = $db->prepare("SELECT count(*) FROM accounts WHERE registerDate >= :time");
-			$checkRegister->execute([':time' => time() - $accountsRegisterDelay]);
-			$checkRegister = $checkRegister->fetchColumn();
-			if($checkRegister) return ["success" => false, "error" => CommonError::Automod];
-		}
+		$logPerson = [
+			'accountID' => 0,
+			'userID' => 0,
+			'userName' => $userName,
+			'IP' => $IP,
+		];
 		
-		if(strlen($userName) > 20 || is_numeric($userName) || strpos($userName, " ") !== false || self::stringViolatesFilter($userName, 0)) return ["success" => false, "error" => RegisterError::InvalidUserName];
+		$checkRegisterRateLimit = Security::checkRateLimits($logPerson, 2);
+		if(!$checkRegisterRateLimit) return ["success" => false, "error" => CommonError::Automod];
+		
+		if(strlen($userName) > 15 || is_numeric($userName) || strpos($userName, " ") !== false || Security::checkFilterViolation($logPerson, $userName, 0)) return ["success" => false, "error" => RegisterError::InvalidUserName];
 		if(strlen($userName) < 3) return ["success" => false, "error" => RegisterError::UserNameIsTooShort];
 		if(strlen($accountPassword) < 6) return ["success" => false, "error" => RegisterError::PasswordIsTooShort];
 		if($accountPassword != $repeatPassword) return ["success" => false, "error" => RegisterError::PasswordsDoNotMatch];
@@ -45,7 +48,7 @@ class Library {
 		$createAccount->execute([':userName' => $userName, ':password' => Security::hashPassword($accountPassword), ':email' => $email, ':registerDate' => time(), ':isActive' => $preactivateAccounts ? 1 : 0, ':gjp2' => Security::hashPassword($gjp2), ':salt' => $salt]);
 		
 		$accountID = $db->lastInsertId();
-		$userID = self::createUser($userName, $accountID, $IP);
+		$userID = self::createUser($userName, $accountID, $IP, true);
 		
 		$person = [
 			'accountID' => $accountID,
@@ -117,16 +120,34 @@ class Library {
 		return $account;
 	}
 	
-	public static function createUser($userName, $accountID, $IP) {
+	public static function createUser($userName, $accountID, $IP, $bypassRateLimit = false) {
 		require __DIR__."/connection.php";
+		require_once __DIR__."/security.php";
 		
 		$isRegistered = is_numeric($accountID) ? 1 : 0;
+		
+		$logPerson = [
+			'accountID' => $accountID,
+			'userID' => 0,
+			'userName' => $userName,
+			'IP' => $IP
+		];
+		
+		if(!$bypassRateLimit) {
+			$checkCreateRateLimit = Security::checkRateLimits($logPerson, 3);
+			if($checkCreateRateLimit) return false;
+		}
 		
 		$createUser = $db->prepare("INSERT INTO users (isRegistered, extID, userName, IP)
 			VALUES (:isRegistered, :extID, :userName, :IP)");
 		$createUser->execute([':isRegistered' => $isRegistered, ':extID' => $accountID, ':userName' => $userName, ':IP' => $IP]);
+		$userID = $db->lastInsertId();
 		
-		return $db->lastInsertId();
+		$logPerson['userID'] = $userID;
+		
+		self::logAction($logPerson, Action::UserCreate, $userID, $userName);
+		
+		return $userID;
 	}
 	
 	public static function getUserID($accountID) {
@@ -145,7 +166,7 @@ class Library {
 			
 			$IP = IP::getIP();
 			$userName = $account['userName'];
-			$userID = self::createUser($userName, $accountID, $IP);
+			$userID = self::createUser($userName, $accountID, $IP) ?: 0;
 		}
 		
 		$GLOBALS['core_cache']['userID'][$accountID] = $userID;
@@ -1396,7 +1417,7 @@ class Library {
 		$accountID = $person['accountID'];
 		$userName = $person['userName'];
 		
-		if(strlen($targetUserName) > 20 || strlen($targetUserName) < 3 || is_numeric($targetUserName) || empty($targetUserName) || $targetUserName == $userName || self::stringViolatesFilter($targetUserName, 0)) return false;
+		if(strlen($targetUserName) > 20 || strlen($targetUserName) < 3 || is_numeric($targetUserName) || empty($targetUserName) || $targetUserName == $userName || Security::checkFilterViolation($person, $targetUserName, 0)) return false;
 		
 		$changeAccountUsername = $db->prepare("UPDATE accounts SET userName = :userName WHERE accountID = :accountID");
 		$changeAccountUsername->execute([':userName' => $targetUserName, ':accountID' => $accountID]);
@@ -1452,6 +1473,7 @@ class Library {
 		require __DIR__."/connection.php";
 		require __DIR__."/../../config/security.php";
 		require_once __DIR__."/automod.php";
+		require_once __DIR__."/security.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return false;
 		
@@ -1461,27 +1483,20 @@ class Library {
 		$checkBan = self::getPersonBan($person, 2);
 		if($checkBan) return ["success" => false, "error" => CommonError::Banned];
 		
-		if($globalLevelsUploadDelay) {
-			$lastUploadedLevel = $db->prepare('SELECT count(*) FROM levels WHERE uploadDate >= :time AND isDeleted = 0');
-			$lastUploadedLevel->execute([':time' => time() - $globalLevelsUploadDelay]);
-			$lastUploadedLevel = $lastUploadedLevel->fetchColumn();
-			if($lastUploadedLevel) return ["success" => false, "error" => LevelUploadError::TooFast];
-		}
-		if($perUserLevelsUploadDelay) {
-			$lastUploadedLevelByUser = $db->prepare('SELECT count(*) FROM levels WHERE uploadDate >= :time AND isDeleted = 0 AND (userID = :userID OR IP = :IP)');
-			$lastUploadedLevelByUser->execute([':time' => time() - $perUserLevelsUploadDelay, ':userID' => $userID, ':IP' => $IP]);
-			$lastUploadedLevelByUser = $lastUploadedLevelByUser->fetchColumn();
-			if($lastUploadedLevelByUser) return ["success" => false, "error" => LevelUploadError::TooFast];
-		}
+		$checkGlobalRateLimit = Security::checkRateLimits($person, 0);
+		if(!$checkGlobalRateLimit) return ["success" => false, "error" => LevelUploadError::TooFast];
 		
-		if(Library::stringViolatesFilter($levelName, 3) || Library::stringViolatesFilter($levelDesc, 3)) return ["success" => false, "error" => CommonError::Filter];
+		$checkPerUserRateLimit = Security::checkRateLimits($person, 1);
+		if(!$checkPerUserRateLimit) return ["success" => false, "error" => LevelUploadError::TooFast];
+		
+		if(Security::checkFilterViolation($person, $levelName, 3) || Security::checkFilterViolation($levelDesc, 3)) return ["success" => false, "error" => CommonError::Filter];
 		
 		if(Automod::isLevelsDisabled(0)) return ["success" => false, "error" => CommonError::Automod];
 		
 		return ["success" => true];
 	}
 	
-	public function uploadLevel($person, $levelID, $levelName, $levelString, $levelDetails) {
+	public static function uploadLevel($person, $levelID, $levelName, $levelString, $levelDetails) {
 		require __DIR__."/../../config/misc.php";
 		require __DIR__."/connection.php";
 		
@@ -2202,6 +2217,7 @@ class Library {
 		require __DIR__."/connection.php";
 		require __DIR__."/../../config/security.php";
 		require_once __DIR__."/automod.php";
+		require_once __DIR__."/security.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return ["success" => false, "error" => LoginError::WrongCredentials];
 		
@@ -2211,7 +2227,7 @@ class Library {
 		$item = $levelID > 0 ? self::getLevelByID($levelID) : self::getListByID($levelID * -1);
 		if($item['commentLocked']) return ["success" => false, "error" => CommonError::Disabled];
 		
-		if(self::stringViolatesFilter($comment, 3)) return ["success" => false, "error" => CommonError::Filter];
+		if(Security::checkFilterViolation($person, $comment, 3)) return ["success" => false, "error" => CommonError::Filter];
 		
 		if(Automod::isLevelsDisabled(1)) return ["success" => false, "error" => CommonError::Automod];
 		
@@ -2222,13 +2238,14 @@ class Library {
 		require __DIR__."/connection.php";
 		require __DIR__."/../../config/security.php";
 		require_once __DIR__."/automod.php";
+		require_once __DIR__."/security.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return ["success" => false, "error" => LoginError::WrongCredentials];
 		
 		$checkBan = self::getPersonBan($person, 3);
 		if($checkBan) return ["success" => false, "error" => CommonError::Banned, "info" => $checkBan];
 		
-		if(self::stringViolatesFilter($comment, 3)) return ["success" => false, "error" => CommonError::Filter];
+		if(Security::checkFilterViolation($person, $comment, 3)) return ["success" => false, "error" => CommonError::Filter];
 		
 		if(Automod::isAccountsDisabled(1)) return ["success" => false, "error" => CommonError::Automod];
 		
@@ -3814,6 +3831,16 @@ class Library {
 		return $getActions;
 	}
 	
+	public static function getActions($filters) {
+		require __DIR__."/connection.php";
+		
+		$getActions = $db->prepare("SELECT * FROM actions WHERE (".implode(") AND (", $filters).") ORDER BY timestamp DESC");
+		$getActions->execute();
+		$getActions = $getActions->fetchAll();
+		
+		return $getActions;
+	}
+	
 	public static function sendRequest($url, $data, $headers, $method, $includeUserAgent = false) {
 		require __DIR__."/../../config/proxy.php";
 		
@@ -3841,69 +3868,6 @@ class Library {
 		curl_close($curl);
 		
 		return $result;
-	}
-	
-	public static function stringViolatesFilter($content, $type) {
-		require __DIR__.'/../../config/security.php';
-		require_once __DIR__.'/exploitPatch.php';
-		
-		switch($type) {
-			case 0:
-				$filterMode = $filterUsernames;
-				$filterBannedWords = $bannedUsernames;
-				$whitelistedWords = $whitelistedUsernames;
-				break;
-			case 1:
-				$filterMode = $filterClanNames;
-				$filterBannedWords = $bannedClanNames;
-				$whitelistedWords = $whitelistedClanNames;
-				break;
-			case 2:
-				$filterMode = $filterClanTags;
-				$filterBannedWords = $bannedClanTags;
-				$whitelistedWords = $whitelistedClanTags;
-				break;
-			case 3:
-				$filterMode = $filterCommon;
-				$filterBannedWords = $bannedCommon;
-				$whitelistedWords = $whitelistedCommon;
-				break;
-		}
-		
-		if($filterMode) {
-			switch($filterMode) {
-				case 1:
-					if(in_array(strtolower($content), $filterBannedWords) && !in_array(strtolower($content), $whitelistedWords)) return true;
-					break;
-				case 2:
-					$contentSplit = explode(' ', $content);
-					
-					// This *may* be not very efficient... I didn't test.
-					foreach($contentSplit AS &$string) {
-						$string = Escape::prepare_for_checking($string);
-						if(empty($string)) continue;
-						
-						foreach($filterBannedWords AS &$bannedWord) {
-							$bannedWord = Escape::prepare_for_checking($bannedWord);
-							if(empty($bannedWord)) continue;
-							
-							if(mb_strpos($string, $bannedWord) !== false) {
-								foreach($whitelistedWords AS &$whitelistedWord) {
-									$whitelistedWord = Escape::prepare_for_checking($whitelistedWord);
-									if(empty($whitelistedWord)) continue;
-									
-									if(mb_strpos($string, $whitelistedWord) !== false) return false;
-								}
-								
-								return true;
-							}
-						}
-					}
-					break;
-			}
-		}
-		
-		return false;
 	}
 	
 	public static function textColor($text, $color) {

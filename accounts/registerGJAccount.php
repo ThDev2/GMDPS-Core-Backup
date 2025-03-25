@@ -10,7 +10,7 @@ $email = Escape::text($_POST['email']);
 
 if(empty($userName) || empty($password) || empty($email)) exit(CommonError::InvalidRequest);
 
-$createAccount = $lib->createAccount($userName, $password, $password, $email, $email);
+$createAccount = Library::createAccount($userName, $password, $password, $email, $email);
 if(!$createAccount['success']) exit($createAccount['error']);
 
 exit(RegisterError::Success);

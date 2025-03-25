@@ -69,6 +69,7 @@ class CommentsError {
 
 class Action {
 	const AccountRegister = 1;
+	const UserCreate = 51;
 	
 	const SuccessfulLogin = 2;
 	const FailedLogin = 6;
@@ -86,8 +87,8 @@ class Action {
 	
 	const ProfileStatsChange = 9;
 	const ProfileSettingsChange = 27;
-	const UsernameChange = 47;
-	const PasswordChange = 48;
+	const UsernameChange = 49;
+	const PasswordChange = 50;
 	
 	const SuccessfulAccountSync = 10;
 	const FailedAccountSync = 11;
@@ -133,6 +134,12 @@ class Action {
 	
 	const LevelVoteNormal = 45;
 	const LevelVoteDemon = 46;
+	
+	const GlobalLevelUploadRateLimit = 52;
+	const PerUserLevelUploadRateLimit = 53;
+	const AccountRegisterRateLimit = 54;
+	const UserCreateRateLimit = 55;
+	const FilterRateLimit = 56;
 	
 	// Unused
 	const GJPSessionGrant = 16;

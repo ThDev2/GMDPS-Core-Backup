@@ -71,9 +71,12 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 	
 	-- SECURITY --
 	
+
+	$rateLimitBanMultiplier — if someone reached rate limit and exceeded RATE LIMIT DELAY * Multiplier, ban their IP address
+	$rateLimitBanTime — for how many seconds IP should be banned
 	
 	$maxLoginTries — maximum amount of login tries per hour
-	
+
 	
 	-- ANTI-SPAM --
 
@@ -96,6 +99,8 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 	$perUserLevelsUploadDelay — if last level by some user was uploaded X seconds ago, new one can't be uploaded
 		0 — turned off
 	$accountsRegisterDelay — if last account was registered X seconds ago, new one can't be registered
+		0 — turned off
+	$usersCreateDelay — if last user was created X seconds ago, new one can't be created
 		0 — turned off
 		
 		
@@ -134,6 +139,9 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 	$whitelistedCommon — list of whitelisted words in common things
 */
 
+$rateLimitBanMultiplier = 2;
+$rateLimitBanTime = 3600;
+
 $maxLoginTries = 4;
 
 $warningsPeriod = 302400;
@@ -149,6 +157,7 @@ $commentsCheckPeriod = 600;
 $globalLevelsUploadDelay = 2;
 $perUserLevelsUploadDelay = 5;
 $accountsRegisterDelay = 5;
+$usersCreateDelay = 10;
 
 $filterUsernames = 2;
 $bannedUsernames = [
