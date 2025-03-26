@@ -21,7 +21,14 @@ $account = Library::getAccountByID($targetAccountID);
 
 $queryText = Library::getBannedPeopleQuery(0, true);
 
-$user['rank'] = Library::getUserRank($user['stars'], $user['moons'], $user['userName']);
+$targetPerson = [
+	'accountID' => $targetAccountID,
+	'userID' => $targetUserID,
+	'IP' => $user['IP']
+];
+
+$checkBan = Library::getPersonBan($targetPerson, 0);
+$user['rank'] = !$checkBan ? Library::getUserRank($user['stars'], $user['moons'], $user['userName']) : 0;
 $user['creatorPoints'] = round($user["creatorPoints"], PHP_ROUND_HALF_DOWN);
 
 $user['messagesState'] = $account['mS'];
@@ -32,13 +39,7 @@ $user['youtubeurl'] = $account['youtubeurl'];
 $user['twitter'] = $account['twitter'];
 $user['twitch'] = $account['twitch'];
 
-$playerPerson = [
-	'accountID' => $targetAccountID,
-	'userID' => $targetUserID,
-	'IP' => $user['IP']
-];
-
-$userAppearance = Library::getPersonCommentAppearance($playerPerson);
+$userAppearance = Library::getPersonCommentAppearance($targetPerson);
 $user['badge'] = $userAppearance['modBadgeLevel'];
 
 if($accountID == $targetAccountID) {

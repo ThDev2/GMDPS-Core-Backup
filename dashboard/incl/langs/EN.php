@@ -56,6 +56,10 @@ $language['errorLevelNotFound'] = 'Level wasn\'t found!';
 
 $language['errorCantDeleteComment'] = 'You can\'t delete this comment.';
 $language['errorCantDeleteScore'] = 'You can\'t delete this score.';
+$language['errorBadComment'] = 'Your comment contains a bad word.';
+$language['errorCommentingIsDisabled'] = 'Commenting is currently disabled.';
+$language['errorLevelCommentingIsDisabled'] = 'Commenting on this level is currently disabled.';
+$language['errorListCommentingIsDisabled'] = 'Commenting on this list is currently disabled.';
 
 /* Success strings */
 $language['successCopiedText'] = 'Copied text!';
@@ -68,6 +72,7 @@ $language['successChangedPassword'] = 'You successfully changed password! Relogi
 
 $language['successDeletedComment'] = 'You deleted this comment!';
 $language['successDeletedScore'] = 'You deleted this score!';
+$language['successUploadedComment'] = 'You successfully uploaded a comment!';
 
 /* Page strings */
 $language['changeUsernameOld'] = 'Old username';
@@ -112,6 +117,9 @@ $language['attempts'] = 'Attempts';
 $language['coins'] = 'Coins';
 $language['clicks'] = 'Clicks';
 $language['time'] = 'Time';
+
+$language['writeSomething'] = 'Write something!';
+$language['bannedToast'] = 'You\'re banned: "%1$s", ban will expire %2$s';
 
 $language['pageText'] = 'Page %1$s of %2$s';
 ?>

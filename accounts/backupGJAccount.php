@@ -18,6 +18,34 @@ $accountID = $person["accountID"];
 $userName = $person['userName'];
 $account = Library::getAccountByID($accountID);
 
+$saveDataArray = explode(";", $saveData);
+$saveDataDecoded = mb_ereg_replace('(\r\n|\r|\n|( \t)|\t)', '', Security::decodeSaveFile($saveDataArray[0]));
+
+$isSaveDataValid = simplexml_load_string($saveDataDecoded);
+if(!$isSaveDataValid) {
+	Library::logAction($person, Action::FailedAccountBackup, strlen($saveData));
+	exit(CommonError::InvalidRequest);
+}
+
+if(strpos($saveDataDecoded, "<key>") !== false) {
+	$keyName = 'key';
+	$stringName = 'string';
+} else {
+	$keyName = 'k';
+	$stringName = 's';
+}
+
+$saveDataDecoded = str_replace('<'.$keyName.'>GJA_002</'.$keyName.'><'.$stringName.'>'.$_POST['password'].'</'.$stringName.'>', '<'.$keyName.'>GJA_002</'.$keyName.'><'.$stringName.'>:3</'.$stringName.'>', $saveDataDecoded);
+$saveDataDecoded = str_replace('<'.$keyName.'>GJA_005</'.$keyName.'><'.$stringName.'>'.$_POST['gjp2'].'</'.$stringName.'>', '<'.$keyName.'>GJA_005</'.$keyName.'><'.$stringName.'>:3</'.$stringName.'>', $saveDataDecoded);
+
+$accountOrbs = explode('</'.$stringName.'>', explode('</'.$stringName.'><'.$keyName.'>14</'.$keyName.'><'.$stringName.'>', $saveDataDecoded)[1])[0] ?: 0;
+$accountCompletedOfficialLevels = explode('</'.$stringName.'>', explode('</'.$stringName.'><'.$keyName.'>3</'.$keyName.'><'.$stringName.'>', explode('<'.$keyName.'>GS_value</'.$keyName.'>', $saveDataDecoded)[1])[1])[0] ?: 0;
+$accountCompletedOnlineLevels = explode('</'.$stringName.'>', explode('</'.$stringName.'><'.$keyName.'>4</'.$keyName.'><'.$stringName.'>', str_replace(['<dict>', '<d>'], '</'.$stringName.'>', explode('<'.$keyName.'>GS_value</'.$keyName.'>', $saveDataDecoded)[1]))[1])[0] ?: 0;
+$accountLevels = $accountCompletedOfficialLevels + $accountCompletedOnlineLevels;
+
+$saveData = Security::encodeSaveFile($saveDataDecoded).';'.$saveDataArray[1];
+Library::updateOrbsAndCompletedLevels($person, $accountOrbs, $accountLevels);
+
 if(!empty($account['salt'])) {
 	$salt = $account['salt'];
 	$fileEncrypted = $sec->encryptData($saveData, $salt);
@@ -26,7 +54,7 @@ if(!empty($account['salt'])) {
 	file_put_contents(__DIR__."/../data/accounts/".$accountID, $saveData);
 }
 
-Library::logAction($person, Action::SuccessfulAccountBackup, $userName, filesize(__DIR__."/../data/accounts/".$accountID), 0, 0);
+Library::logAction($person, Action::SuccessfulAccountBackup, $userName, filesize(__DIR__."/../data/accounts/".$accountID), $accountOrbs, $accountLevels);
 
 exit(CommonError::Success);
 ?>

@@ -76,6 +76,12 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 	$rateLimitBanTime — for how many seconds IP should be banned
 	
 	$maxLoginTries — maximum amount of login tries per hour
+	
+	$statsTimeCheck — time in seconds for checking stats speed
+	$maxStarsPossible — maximum amount of stars user can gain before they get banned
+	$maxMoonsPossible — maximum amount of moons user can gain before they get banned
+	$maxUserCoinsPossible — maximum amount of user coins user can gain before they get banned
+	$maxDemonsPossible — maximum amount of demons user can gain before they get banned
 
 	
 	-- ANTI-SPAM --
@@ -85,14 +91,20 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 
 	$levelsCountModifier — modifier to levels before count to avoid small levels increase warning
 		if(Levels after > Levels before * Levels modifier) WARNING;
-	$levelsCheckPeriod — what period of time in seconds to check
+	$levelsDaysCheckPeriod — average levels count last X days will be used to compare to amount today
+	$levelsSpamUploadDisable — for how many seconds level uploading should be automatically disabled if spamming detected
+		0 — turned off
 
 	$accountsCountModifier — modifier to accounts before count to avoid small accounts increase warning
 		if(Accounts after > Accounts before * Accounts modifier) WARNING;
-	$accountsCheckPeriod — what period of time in seconds to check
+	$accountsDaysCheckPeriod — average levels count last X days will be used to compare to amount today
+	$accountsSpamUploadDisable — for how many seconds account registering should be automatically disabled if spamming detected
+		0 — turned off
 
 	$commentsCheckPeriod — comments posted in this period of time in seconds will be checked
 		600 is 10 minutes, so comments posted in last 10 minutes would be checked
+	$commentsSpamUploadDisable — for how many seconds commenting should be automatically disabled if spamming detected
+		0 — turned off
 
 	$globalLevelsUploadDelay — if last level was uploaded X seconds ago, new one can't be uploaded
 		0 — turned off
@@ -102,7 +114,9 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 		0 — turned off
 	$usersCreateDelay — if last user was created X seconds ago, new one can't be created
 		0 — turned off
-		
+	
+	$filterTimeCheck — if person tried to post filtered word, warnings of how many seconds old should be checked
+	$filterRateLimitBan — how many filter warnings will get person banned from commenting?
 		
 	-- CONTENT FILTERS -- 
 	
@@ -144,20 +158,32 @@ $rateLimitBanTime = 3600;
 
 $maxLoginTries = 4;
 
+$statsTimeCheck = 600;
+$maxStarsPossible = 150;
+$maxMoonsPossible = 150;
+$maxUserCoinsPossible = 80;
+$maxDemonsPossible = 30;
+
 $warningsPeriod = 302400;
 
 $levelsCountModifier = 1.3;
-$levelsCheckPeriod = 604800;
+$levelsDaysCheckPeriod = 7;
+$levelsSpamUploadDisable = 1200;
 
 $accountsCountModifier = 1.3;
-$accountsCheckPeriod = 604800;
+$accountsDaysCheckPeriod = 7;
+$accountsSpamUploadDisable = 1200;
 
 $commentsCheckPeriod = 600;
+$commentsSpamUploadDisable = 600;
 
 $globalLevelsUploadDelay = 2;
 $perUserLevelsUploadDelay = 5;
 $accountsRegisterDelay = 5;
 $usersCreateDelay = 10;
+
+$filterTimeCheck = 60;
+$filterRateLimitBan = 10;
 
 $filterUsernames = 2;
 $bannedUsernames = [

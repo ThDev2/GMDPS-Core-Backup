@@ -126,12 +126,14 @@ class Security {
 		if(self::isTooManyAttempts()) {
 			$logPerson = [
 				'accountID' => (string)Escape::number($_POST['accountID']),
-				'userID' => (string)Library::getUserID(Escape::number($_POST['accountID'])),
+				'userID' => 0,
 				'userName' => '',
 				'IP' => $IP
 			];
 			
 			Library::logAction($logPerson, Action::FailedLogin);
+			self::checkRateLimits($logPerson, 5);
+			
 			return ["success" => false, "error" => LoginError::WrongCredentials, "accountID" => (string)Escape::number($_POST['accountID']), "IP" => $IP];
 		}
 		
@@ -159,7 +161,11 @@ class Security {
 						'IP' => $IP
 					];
 					
-					if(!empty($udid)) Library::logAction($logPerson, Action::FailedLogin);
+					if(!empty($udid)) {
+						Library::logAction($logPerson, Action::FailedLogin);
+						self::checkRateLimits($logPerson, 5);
+					}
+					
 					return ["success" => true, "accountID" => "0", "userID" => "0", "userName" => "Undefined", "IP" => $IP];
 				}
 				
@@ -175,8 +181,19 @@ class Security {
 		}
 		
 		$loginType = self::getLoginType();
-		if(!$loginType) return ["success" => false, "error" => LoginError::GenericError, "accountID" => $accountID];
+		if(!$loginType) {
+			$logPerson = [
+				'accountID' => $accountID,
+				'userID' => $userID ?: Library::getUserID($accountID),
+				'userName' => '',
+				'IP' => $IP
+			];
 
+			self::checkRateLimits($logPerson, 5);
+			
+			return ["success" => false, "error" => LoginError::GenericError, "accountID" => $accountID, "IP" => $IP];
+		}
+	
 		$loginToAccount = $this->loginToAccountWithID($accountID, $loginType["key"], $loginType["type"]);
 		if(!$loginToAccount['success']) {
 			$logPerson = [
@@ -187,12 +204,19 @@ class Security {
 			];
 			
 			Library::logAction($logPerson, Action::FailedLogin);
-			return ["success" => false, "error" => $loginToAccount['error'], "accountID" => $accountID];
+			self::checkRateLimits($logPerson, 5);
+			
+			return ["success" => false, "error" => $loginToAccount['error'], "accountID" => $accountID, "IP" => $IP];
 		}
-		
+	
 		$auth = self::getAuthToken($accountID);
 		
-		return ["success" => true, "accountID" => $loginToAccount['accountID'], "userID" => $loginToAccount['userID'], "userName" => $loginToAccount["userName"], "IP" => $loginToAccount['IP'], 'auth' => $auth];
+		$person = ["success" => true, "accountID" => $loginToAccount['accountID'], "userID" => $loginToAccount['userID'], "userName" => $loginToAccount["userName"], "IP" => $loginToAccount['IP'], 'auth' => $auth];
+		
+		$checkBan = Library::getPersonBan($person, 4);
+		if($checkBan) return true;
+		
+		return $person;
 	}
 	
 	public static function updateLastPlayed($userID) {
@@ -333,9 +357,8 @@ class Security {
 			'IP' => $IP
 		];
 		
-		$filters = ['type = '.Action::FailedLogin, 'timestamp >= '.time() - 3600];
-		
-		$failedLogins = Library::getPersonActions($searchPerson, $filters);
+		$searchFilters = ['type = '.Action::FailedLogin, 'timestamp >= '.time() - 3600];
+		$failedLogins = Library::getPersonActions($searchPerson, $searchFilters);
 		
 		return count($failedLogins) > $maxLoginTries;
 	}
@@ -387,7 +410,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($globalLevelsUploadDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for globally uploading level. (".count($isRateLimited)." out of ".($globalLevelsUploadDelay * $rateLimitBanMultiplier).")", 2, 2, (time() + $rateLimitBanTime));
+						Library::banPerson(0, $IP, "You exceeded allowed rate limit for globally uploading level.", 2, 2, (time() + $rateLimitBanTime));
 					}
 					
 					return false;
@@ -408,7 +431,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($perUserLevelsUploadDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for uploading levels per user. (".count($isRateLimited)." out of ".($perUserLevelsUploadDelay * $rateLimitBanMultiplier).")", 2, 2, (time() + $rateLimitBanTime));
+						Library::banPerson(0, $IP, "You exceeded allowed rate limit for uploading levels per user.", 2, 2, (time() + $rateLimitBanTime));
 					}
 					
 					return false;
@@ -429,7 +452,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($accountsRegisterDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for registering accounts. (".count($isRateLimited)." out of ".($accountsRegisterDelay * $rateLimitBanMultiplier).")", 4, 2, (time() + $rateLimitBanTime));
+						Library::banPerson(0, $IP, "You exceeded allowed rate limit for registering accounts.", 4, 2, (time() + $rateLimitBanTime));
 					}
 					
 					return false;
@@ -449,7 +472,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($usersCreateDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "Person exceeded allowed rate limit for creating users. (".count($isRateLimited)." out of ".($usersCreateDelay * $rateLimitBanMultiplier).")", 4, 2, (time() + $rateLimitBanTime));
+						Library::banPerson(0, $IP, "You exceeded allowed rate limit for creating users.", 4, 2, (time() + $rateLimitBanTime));
 					}
 					
 					return false;
@@ -457,11 +480,21 @@ class Security {
 				
 				return true;
 			case 4:
-				$searchFilters = ["type = ".Action::FilterRateLimit, 'timestamp >= '.(time() - 60)];
+				$searchFilters = ["type = ".Action::FilterRateLimit, 'timestamp >= '.(time() - $filterTimeCheck)];
 				$isRateLimited = Library::getPersonActions($person, $searchFilters);
 				
-				if(count($isRateLimited) > (20 * $rateLimitBanMultiplier)) {
-					Library::banPerson(0, $IP, "Person exceeded allowed rate limit for filters. (".count($isRateLimited)." out of ".(20 * $rateLimitBanMultiplier).")", 3, 2, (time() + $rateLimitBanTime));
+				if(count($isRateLimited) > $filterRateLimitBan) {
+					Library::banPerson(0, $IP, "You swore too much.", 3, 2, (time() + $rateLimitBanTime));
+					return false;
+				}
+				
+				return true;
+			case 5:
+				$searchFilters = ['type = '.Action::FailedLogin, 'timestamp >= '.time() - 3600];
+				$isRateLimited = Library::getPersonActions($person, $searchFilters);
+				
+				if(count($isRateLimited) > ($maxLoginTries * $rateLimitBanMultiplier)) {
+					Library::banPerson(0, $IP, "You exceeded allowed rate limit for logging in.", 4, 2, (time() + $rateLimitBanTime));
 					return false;
 				}
 				
@@ -547,6 +580,24 @@ class Security {
 		rsort($valuesArray);
 		
 		return $valuesArray[1];
+	}
+	
+	public static function decodeSaveFile($saveData) {
+		require_once __DIR__.'/exploitPatch.php';
+		
+		$saveData = Escape::url_base64_decode($saveData);
+		$saveData = gzdecode($saveData);
+		
+		return $saveData;
+	}
+	
+	public static function encodeSaveFile($saveData) {
+		require_once __DIR__.'/exploitPatch.php';
+		
+		$saveData = gzencode($saveData);
+		$saveData = Escape::url_base64_encode($saveData);
+		
+		return $saveData;
 	}
 }
 ?>

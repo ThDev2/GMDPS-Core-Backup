@@ -108,37 +108,41 @@ async function postPage(href, form) {
 }
 
 function changePage(response, href, skipCheck = false) {
-	newPageBody = new DOMParser().parseFromString(response, "text/html");
+	return new Promise(r => {
+		newPageBody = new DOMParser().parseFromString(response, "text/html");
 	
-	const newPage = newPageBody.getElementById("dashboard-page");
-	
-	if(newPage == null) {
-		const toastBody = newPageBody.getElementById("toast");
-		if(toastBody != null) return showToast(toastBody);
+		const newPage = newPageBody.getElementById("dashboard-page");
 		
-		Toastify({
-			text: failedToLoadText,
-			duration: 2000,
-			position: "center",
-			escapeMarkup: false,
-			className: 'error',
-		}).showToast();
-		
-		return;
-	}
+		if(newPage == null) {
+			const toastBody = newPageBody.getElementById("toast");
+			if(toastBody != null) return showToast(toastBody);
+			
+			Toastify({
+				text: failedToLoadText,
+				duration: 2000,
+				position: "center",
+				escapeMarkup: false,
+				className: 'error',
+			}).showToast();
+			
+			r(false);
+		}
 
-	if(!skipCheck) history.pushState(null, null, href);
-	
-	document.getElementById("dashboard-page").replaceWith(newPage);
-	document.querySelector("base").replaceWith(newPageBody.querySelector("base"));
-	document.querySelector("title").replaceWith(newPageBody.querySelector("title"));
-	document.querySelector("nav").replaceWith(newPageBody.querySelector("nav"));
-	
-	dashboardBody = document.getElementById("dashboard-body");
-	dashboardBase = document.querySelector("base");
-	
-	updatePage();
-	updateNavbar();
+		if(!skipCheck) history.pushState(null, null, href);
+		
+		document.getElementById("dashboard-page").replaceWith(newPage);
+		document.querySelector("base").replaceWith(newPageBody.querySelector("base"));
+		document.querySelector("title").replaceWith(newPageBody.querySelector("title"));
+		document.querySelector("nav").replaceWith(newPageBody.querySelector("nav"));
+		
+		dashboardBody = document.getElementById("dashboard-body");
+		dashboardBase = document.querySelector("base");
+		
+		updatePage();
+		updateNavbar();
+		
+		r(true);
+	});
 }
 
 async function updateNavbar() {
@@ -150,11 +154,13 @@ async function updateNavbar() {
 		
 		if(href != null && ((window.location.href.endsWith(href) && href.length) || (!href.length && dashboardBase.getAttribute("href") == './'))) navbarButton.classList.add("current");
 		
-		if(dropdown != null) navbarButton.addEventListener("mouseup", (event) => toggleDropdown(dropdown));
+		if(dropdown != null) {
+			const navbarDropdown = document.querySelector("#" + dropdown + " .dropdown-items");
+			navbarDropdown.style = "--dropdown-height: " + navbarDropdown.scrollHeight + "px";
+			
+			navbarButton.addEventListener("mouseup", (event) => toggleDropdown(dropdown));
+		}
 	});
-	
-	for(const element of document.querySelectorAll("[dashboard-hide=true]")) element.remove();
-	for(const element of document.querySelectorAll("[dashboard-show=false]")) element.remove();
 }
 
 function toggleDropdown(dropdown) {
@@ -173,11 +179,36 @@ function showToast(toastBody) {
 		className: toastBody.getAttribute("state"),
 	}).showToast();
 	
+	const dateElements = document.querySelector(".toastify").querySelectorAll('[dashboard-date]');
+	dateElements.forEach(async (element) => {
+		const dateTime = element.getAttribute("dashboard-date");
+		
+		const textStyle = element.getAttribute("dashboard-full") != null ? "long" : "short";
+		
+		element.innerHTML = timeConverter(dateTime, textStyle);
+		intervals[999] = setInterval(async (event) => {
+			element.innerHTML = timeConverter(dateTime, textStyle);
+		}, 1000);
+		
+		element.onclick = () => {
+			Toastify({
+				text: timeConverter(dateTime, false),
+				duration: 2000,
+				position: "center",
+				escapeMarkup: false,
+				className: "info",
+			}).showToast();
+		}
+	});
+	
 	const toastLocation = toastBody.getAttribute("location");
 	if(toastLocation.length) getPage(toastLocation);
 }
 
 async function updatePage() {
+	for(const element of document.querySelectorAll("[dashboard-hide=true]")) element.remove();
+	for(const element of document.querySelectorAll("[dashboard-show=false]")) element.remove();
+	
 	const removeElements = dashboardBody.querySelectorAll('[dashboard-remove]');
 	removeElements.forEach(async (element) => {
 		const elementsToRemove = element.getAttribute("dashboard-remove").split(" ");

@@ -56,6 +56,10 @@ $language['errorLevelNotFound'] = 'Уровень не найден!';
 
 $language['errorCantDeleteComment'] = 'Вы не можете удалить этот комментарий.';
 $language['errorCantDeleteScore'] = 'Вы не можете удалить этот рекорд.';
+$language['errorBadComment'] = 'Ваш комментарий содержит плохие слова.';
+$language['errorCommentingIsDisabled'] = 'Комментирование отключено.';
+$language['errorLevelCommentingIsDisabled'] = 'Комментирование этого уровня отключено.';
+$language['errorListCommentingIsDisabled'] = 'Комментирование этого списка отключена.';
 
 /* Success strings */
 $language['successCopiedText'] = 'Текст скопирован!';
@@ -68,6 +72,7 @@ $language['successChangedPassword'] = 'Вы успешно сменили пар
 
 $language['successDeletedComment'] = 'Вы удалили этот комментарий!';
 $language['successDeletedScore'] = 'Вы удалили этот рекорд!';
+$language['successUploadedComment'] = 'Вы успешно выложили комментарий!';
 
 /* Page strings */
 $language['changeUsernameOld'] = 'Старый никнейм';
@@ -112,6 +117,9 @@ $language['attempts'] = 'Попытки';
 $language['coins'] = 'Монетки';
 $language['clicks'] = 'Клики';
 $language['time'] = 'Время';
+
+$language['writeSomething'] = 'Напишите что-нибудь!';
+$language['bannedToast'] = 'Вы заблокированы: "%1$s", бан пройдёт %2$s';
 
 $language['pageText'] = 'Страница %1$s из %2$s';
 ?>

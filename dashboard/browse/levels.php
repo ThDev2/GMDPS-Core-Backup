@@ -92,6 +92,7 @@ if($_GET['id']) {
 					'ADDITIONAL_PAGE' => $additionalPage,
 					'LEVEL_NO_COMMENTS' => !$comments['count'] ? 'true' : 'false',
 					'COMMENT_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
+					'LEVEL_ID' => $levelID,
 					'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 					'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
 					'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",

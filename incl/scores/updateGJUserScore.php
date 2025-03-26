@@ -16,7 +16,7 @@ $userID = $person["userID"];
 $userName = $person["userName"];
 $IP = $person["IP"];
 
-if(Automod::isAccountsDisabled(2)) exit($userID);
+if(Automod::isAccountsDisabled(2) || (!$unregisteredSubmissions && !$accountID)) exit($userID);
 
 $stars = Escape::number($_POST["stars"]);
 $demons = Escape::number($_POST["demons"]);
@@ -103,6 +103,8 @@ $diamondsDifference = $diamonds - $user["diamonds"];
 $moonsDifference = $moons - $user["moons"];
 
 Library::logAction($person, Action::ProfileStatsChange, $starsDifference, $coinsDifference, $demonsDifference, $userCoinsDifference, $diamondsDifference, $moonsDifference);
+
+Automod::checkStatsSpeed($accountID);
 
 if($gameVersion < 20 && !is_numeric($accountID) && $starsDifference + $coinsDifference + $demonsDifference + $userCoinsDifference + $diamondsDifference + $moonsDifference != 0) exit(CommonError::SubmitRestoreInfo);
 

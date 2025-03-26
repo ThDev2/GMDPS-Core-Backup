@@ -24,6 +24,9 @@ class Automod {
 			$isWarned = self::getLastAutomodAction(1, true);
 			if(!$isWarned) {
 				self::logAutomodActions(1, $levelsBefore, $levelsAfter, $levelsBeforeModified);
+				
+				if($levelsSpamUploadDisable) self::changeLevelsAutomodState(0, true, time() + $levelsSpamUploadDisable);
+				
 				//$gs->sendLevelsWarningWebhook($levelsBefore, $levelsAfter);
 			}
 			return false;
@@ -161,7 +164,7 @@ class Automod {
 	}
 	
 	/*
-		Automod::isLevelsDisabled()
+		Automod::isLevelsDisabled($disableType)
 		
 		This function checks if levels uploading is disabled by automod
 		
@@ -238,14 +241,13 @@ class Automod {
 		require __DIR__."/connection.php";
 		require_once __DIR__."/mainLib.php";
 		
-		$levelsPeriod = time() - ($levelsCheckPeriod * 2);
+		$levelsPeriod = time() - ($levelsDaysCheckPeriod * 86400);
 		$levelsCount = $db->prepare("SELECT count(*) FROM levels WHERE uploadDate >= :time AND uploadDate <= :time2 ORDER BY uploadDate DESC");
-		$levelsCount->execute([':time' => $levelsPeriod, ':time2' => $levelsPeriod + $levelsCheckPeriod]);
-		$levelsBefore = $levelsCount->fetchColumn();
+		$levelsCount->execute([':time' => $levelsPeriod, ':time2' => time() - 86400]);
+		$levelsBefore = $levelsCount->fetchColumn() / $levelsDaysCheckPeriod;
 		
-		$levelsPeriod = $levelsPeriod + $levelsCheckPeriod;
-		$levelsCount = $db->prepare("SELECT count(*) FROM levels WHERE uploadDate >= :time AND uploadDate <= :time2 ORDER BY uploadDate DESC");
-		$levelsCount->execute([':time' => $levelsPeriod, ':time2' => $levelsPeriod + $levelsCheckPeriod]);
+		$levelsCount = $db->prepare("SELECT count(*) FROM levels WHERE uploadDate >= :time ORDER BY uploadDate DESC");
+		$levelsCount->execute([':time' => time() - 86400]);
 		$levelsAfter = $levelsCount->fetchColumn();
 		
 		return ['before' => $levelsBefore, 'after' => $levelsAfter];
@@ -318,14 +320,13 @@ class Automod {
 		require __DIR__."/connection.php";
 		require_once __DIR__."/mainLib.php";
 		
-		$accountsPeriod = time() - ($accountsCheckPeriod * 2);
+		$accountsPeriod = time() - ($accountsDaysCheckPeriod * 86400);
 		$accountsCount = $db->prepare("SELECT count(*) FROM accounts WHERE registerDate >= :time AND registerDate <= :time2 ORDER BY registerDate DESC");
-		$accountsCount->execute([':time' => $accountsPeriod, ':time2' => $accountsPeriod + $accountsCheckPeriod]);
-		$accountsBefore = $accountsCount->fetchColumn();
+		$accountsCount->execute([':time' => $accountsPeriod, ':time2' => time() - 86400]);
+		$accountsBefore = $accountsCount->fetchColumn() / $accountsDaysCheckPeriod;
 		
-		$accountsPeriod = $accountsPeriod + $accountsCheckPeriod;
-		$accountsCount = $db->prepare("SELECT count(*) FROM accounts WHERE registerDate >= :time AND registerDate <= :time2 ORDER BY registerDate DESC");
-		$accountsCount->execute([':time' => $accountsPeriod, ':time2' => $accountsPeriod + $accountsCheckPeriod]);
+		$accountsCount = $db->prepare("SELECT count(*) FROM accounts WHERE registerDate >= :time ORDER BY registerDate DESC");
+		$accountsCount->execute([':time' => time() - 86400]);
 		$accountsAfter = $accountsCount->fetchColumn();
 		
 		return ['before' => $accountsBefore, 'after' => $accountsAfter];
@@ -355,6 +356,9 @@ class Automod {
 			$isWarned = self::getLastAutomodAction(5, true);
 			if(!$isWarned) {
 				self::logAutomodActions(5, $accountsBefore, $accountsAfter, $accountsBeforeModified);
+				
+				if($accountsSpamUploadDisable) self::changeAccountsAutomodState(0, true, time() + $accountsSpamUploadDisable);
+					
 				//$gs->sendAccountsWarningWebhook($accountsBefore, $accountsAfter);
 			}
 			return false;
@@ -465,13 +469,13 @@ class Automod {
 	}
 	
 	/*
-		Automod::isAccountsDisabled()
+		Automod::isAccountsDisabled($disableType)
 		
-		This function checks if levels uploading is disabled by automod
+		This function checks if accounts registering is disabled by automod
 		
 		Return value:
-			true — levels uploading is disabled
-			false — levels uploading is enabled
+			true — accounts registering is disabled
+			false — accounts registering is enabled
 	*/
 	public static function isAccountsDisabled($disableType = 0) {
 		$actionTypes = self::getAccountsDisableTypes();
@@ -603,12 +607,15 @@ class Automod {
 			$x++;
 		}
 		
-		if($similarity > $commentsCount / 3 && $commentsCount > 5) {
+		if($similarity > $commentsCount / 3 && $similarCommentsCount > 5) {
 			$isWarned = self::getLastAutomodAction(10, true);
 			
 			if(!$isWarned) {
 				$similarCommentsAuthors = array_unique($similarCommentsAuthors);
 				self::logAutomodActions(10, $similarCommentsCount, $similarity, $commentsCount, implode(', ', $similarCommentsAuthors));
+				
+				if($commentsSpamUploadDisable) self::changeLevelsAutomodState(1, true, time() + $commentsSpamUploadDisable);
+				
 				//$gs->sendCommentsSpammingWarningWebhook($similarCommentsCount, $similarCommentsAuthors);
 			}
 			
@@ -637,7 +644,7 @@ class Automod {
 			$x++;
 		}
 		
-		if($similarity > $commentsCount / 3 && $commentsCount > 3) {
+		if($similarity > $commentsCount / 3 && $similarCommentsCount > 3) {
 			$isWarned = self::getLastAutomodAction(11, true);
 			
 			if(!$isWarned) {
@@ -696,12 +703,15 @@ class Automod {
 			$x++;
 		}
 		
-		if($similarity > $commentsCount / 3 && $commentsCount > 5) {
+		if($similarity > $commentsCount / 3 && $similarCommentsCount > 4) {
 			$isWarned = self::getLastAutomodAction(12, true);
 			
 			if(!$isWarned) {
 				$similarCommentsAuthors = array_unique($similarCommentsAuthors);
 				self::logAutomodActions(12, $similarCommentsCount, $similarity, $commentsCount, implode(', ', $similarCommentsAuthors));
+				
+				if($commentsSpamUploadDisable) self::changeAccountsAutomodState(1, true, time() + $commentsSpamUploadDisable);
+				
 				//$gs->sendAccountPostsSpammingWarningWebhook($similarCommentsCount, $similarCommentsAuthors);
 			}
 			
@@ -730,11 +740,14 @@ class Automod {
 			$x++;
 		}
 		
-		if($similarity > $commentsCount / 3 && $commentsCount > 3) {
+		if($similarity > $commentsCount / 3 && $similarCommentsCount > 4) {
 			$isWarned = self::getLastAutomodAction(13, true);
 			
 			if(!$isWarned) {
 				self::logAutomodActions(13, $similarCommentsCount, $similarity, $commentsCount, $userID);
+				
+				if($commentsSpamUploadDisable) Library::banPerson(0, $userID, "No spamming!", 3, 1, (time() + $commentsSpamUploadDisable));
+				
 				//$gs->sendAccountPostsSpammerWarningWebhook($similarCommentsCount, $userID);
 			}
 			
@@ -749,7 +762,7 @@ class Automod {
 		
 		This function checks last replies for spamming
 		
-		$userID — account ID of latest reply author (Number)
+		$accountID — account ID of latest reply author (Number)
 		
 		Return value:
 			true — everything is good, no spamming
@@ -789,7 +802,7 @@ class Automod {
 			$x++;
 		}
 		
-		if($similarity > $commentsCount / 3 && $commentsCount > 5) {
+		if($similarity > $commentsCount / 3 && $similarCommentsCount > 4) {
 			$isWarned = self::getLastAutomodAction(14, true);
 			
 			if(!$isWarned) {
@@ -823,18 +836,66 @@ class Automod {
 			$x++;
 		}
 		
-		if($similarity > $commentsCount / 3 && $commentsCount > 3) {
+		if($similarity > $commentsCount / 3 && $similarCommentsCount > 3) {
 			$isWarned = self::getLastAutomodAction(15, true);
 			
 			if(!$isWarned) {
 				self::logAutomodActions(15, $similarCommentsCount, $similarity, $commentsCount, $accountID);
-				$gs->sendRepliesSpammerWarningWebhook($similarCommentsCount, $accountID);
+				//$gs->sendRepliesSpammerWarningWebhook($similarCommentsCount, $accountID);
 			}
 			
 			$returnValue = false;
 		}
 		
 		return $returnValue;
+	}
+	
+	/*
+		Automod::checkStatsSpeed($accountID)
+		
+		This function checks how fast user gains stats
+		
+		$accountID — account ID of user (Number)
+		
+		Return value:
+			true — everything is good, no cheating
+			false — cheating detected!
+	*/
+	public static function checkStatsSpeed($accountID) {
+		require __DIR__."/../../config/security.php";
+		require __DIR__."/connection.php";
+		require_once __DIR__."/mainLib.php";
+		
+		$searchFilters = ['type = '.Action::ProfileStatsChange, 'account = '.$accountID];
+		$statChanges = Library::getActions($searchFilters, 2);
+		
+		if(!$statChanges || count($statChanges) < 2) return true;
+		
+		$timeBefore = $statChanges[1]['timestamp'];
+		$starsBefore = $statChanges[1]['value'];
+		$moonsBefore = $statChanges[1]['value6'];
+		$userCoinsBefore = $statChanges[1]['value4'];
+		$demonsBefore = $statChanges[1]['value3'];
+		
+		$timeAfter = $statChanges[0]['timestamp'];
+		$starsAfter = $statChanges[0]['value'];
+		$moonsAfter = $statChanges[0]['value6'];
+		$userCoinsAfter = $statChanges[0]['value4'];
+		$demonsAfter = $statChanges[0]['value3'];
+		
+		$timeRatio = ($timeAfter - $timeBefore) / $statsTimeCheck;
+		
+		$starsRatio = ($starsAfter + $starsBefore) / $timeRatio;
+		$moonsRatio = ($moonsAfter + $moonsBefore) / $timeRatio;
+		$userCoinsRatio = ($userCoinsAfter + $userCoinsBefore) / $timeRatio;
+		$demonsRatio = ($demonsAfter + $demonsBefore) / $timeRatio;
+		
+		if($starsRatio > $maxStarsPossible || $moonsRatio > $maxMoonsPossible || $userCoinsRatio > $maxUserCoinsPossible || $demonsRatio > $maxDemonsPossible) {
+			Library::banPerson(0, $accountID, "You're too fast at gaining stats.", 0, 0, 2147483647);
+			return false;
+		}
+		
+		return true;
 	}
 }
 ?>

@@ -313,7 +313,7 @@ body.hide .dashboard-page {
 	
 	background: #131313;
 	
-	transition: 0.2s;
+	transition: 0.1s;
 }
 
 .dashboard-loader i {
@@ -346,6 +346,11 @@ form {
 	transition: 0.2s;
 }
 
+.bordered {
+	background: #86868614 !important;
+	border: 1px solid #86868624 !important;
+}
+
 .inputDiv {
 	display: flex;
 	flex-direction: column;
@@ -362,7 +367,7 @@ form {
 }
 
 form.empty-fields .inputStyle:not([dashboard-not-required]):placeholder-shown {
-    border: 2px solid #c93636;
+    border: 2px solid #c93636 !important;
 }
 
 .toastify {
@@ -404,29 +409,22 @@ form.empty-fields .inputStyle:not([dashboard-not-required]):placeholder-shown {
 }
 
 .dropdown-items {
-	display: none;
-	max-height: 0px;
-	
+	display: flex;
 	flex-direction: column;
 	
 	grid-gap: 5px;
 	margin-left: 10px;
 	
 	width: calc(100% - 20px);
+	max-height: 0px;
 	
 	transition: 0.2s;
 	
 	overflow: hidden;
-	
-	@starting-style {
-        height: 0;
-    }
 }
 
 .dropdown.show .dropdown-items {
-	display: flex;
-	
-	animation: dropdown-remove 0.2s ease forwards;
+	max-height: var(--dropdown-height);
 }
 
 .navbar-buttons.up .dropdown.show .dropdown-items {
@@ -463,18 +461,6 @@ nav .dropdown-items button {
 	gap: 7px;
 	
 	padding: 10px 13px;
-}
-
-@keyframes dropdown-remove {
-	from {
-		display: none;
-		max-height: 0px;
-	}
-	
-	to {
-		display: flex;
-		max-height: 100%;
-	}
 }
 
 ::-webkit-scrollbar {
@@ -1202,4 +1188,25 @@ i[onclick] {
 
 .levelTitle h1[dashboard-score="3"] {
 	color: #ffd1a8;
+}
+
+.inlineForm {
+	display: inline-flex;
+	gap: 10px;
+}
+
+.inlineForm button {
+	width: max-content !important;
+}
+
+.inlineForm button:hover {
+	background-color: #86868624 !important;
+}
+
+.inlineForm button:active {
+	scale: 90% !important;
+}
+
+.inlineForm input {
+	width: 100% !important;
 }

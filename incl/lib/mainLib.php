@@ -61,6 +61,8 @@ class Library {
 
 		// TO-DO: Re-add email verification
 		
+		Automod::checkAccountsCount();
+		
 		return ["success" => true, "accountID" => $accountID, "userID" => $userID];
 	}
 	
@@ -300,6 +302,7 @@ class Library {
 	public static function uploadAccountComment($person, $comment) {
 		require __DIR__."/connection.php";
 		require_once __DIR__."/exploitPatch.php";
+		require_once __DIR__."/automod.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return false;
 		
@@ -316,6 +319,8 @@ class Library {
 		$commentID = $db->lastInsertId();
 
 		self::logAction($person, Action::AccountCommentUpload, $userName, $comment, $commentID);
+		
+		Automod::checkAccountPostsSpamming($userID);
 		
 		return $commentID;
 	}
@@ -548,7 +553,7 @@ class Library {
 		$ban->execute([':accountID' => $accountID, ':userID' => $userID, ':IP' => $IP, ':banType' => $banType]);
 		$ban = $ban->fetch();
 		
-		return $ban;
+		return $ban['expires'] > time() ? $ban : false;
 	}
 	
 	public static function convertIPForSearching($IP, $isSearch = false) {
@@ -1451,6 +1456,17 @@ class Library {
 		return true;
 	}
 	
+	public static function updateOrbsAndCompletedLevels($person, $orbs, $levels) {
+		require __DIR__."/connection.php";
+		
+		$accountID = $person['accountID'];
+		
+		$updateStats = $db->prepare("UPDATE users SET orbs = :orbs, completedLvls = :levels WHERE extID = :accountID");
+		$updateStats->execute([':orbs' => $orbs, ':levels' => $levels, ':accountID' => $accountID]);
+		
+		return true;
+	}
+	
 	/*
 		Levels-related functions
 	*/
@@ -1489,7 +1505,7 @@ class Library {
 		$checkPerUserRateLimit = Security::checkRateLimits($person, 1);
 		if(!$checkPerUserRateLimit) return ["success" => false, "error" => LevelUploadError::TooFast];
 		
-		if(Security::checkFilterViolation($person, $levelName, 3) || Security::checkFilterViolation($levelDesc, 3)) return ["success" => false, "error" => CommonError::Filter];
+		if(Security::checkFilterViolation($person, $levelName, 3) || Security::checkFilterViolation($person, $levelDesc, 3)) return ["success" => false, "error" => CommonError::Filter];
 		
 		if(Automod::isLevelsDisabled(0)) return ["success" => false, "error" => CommonError::Automod];
 		
@@ -1499,6 +1515,7 @@ class Library {
 	public static function uploadLevel($person, $levelID, $levelName, $levelString, $levelDetails) {
 		require __DIR__."/../../config/misc.php";
 		require __DIR__."/connection.php";
+		require_once __DIR__."/automod.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return ['success' => false, 'error' => LoginError::WrongCredentials];
 		
@@ -1549,6 +1566,8 @@ class Library {
 		
 		rename(__DIR__.'/../../data/levels/'.$userID.'_'.$timestamp, __DIR__.'/../../data/levels/'.$levelID);
 		self::logAction($person, Action::LevelUpload, $levelName, $levelDetails['levelDesc'], $levelID);
+		
+		Automod::checkLevelsCount();
 		
 		return ["success" => true, "levelID" => (string)$levelID];
 	}
@@ -1683,6 +1702,7 @@ class Library {
 		require __DIR__."/connection.php";
 		require __DIR__."/../../config/misc.php";
 		require_once __DIR__."/exploitPatch.php";
+		require_once __DIR__."/automod.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return false;
 		
@@ -1699,6 +1719,8 @@ class Library {
 		$commentID = $db->lastInsertId();
 
 		self::logAction($person, Action::CommentUpload, $userName, $comment, $commentID, $levelID);
+		
+		Automod::checkCommentsSpamming($userID);
 		
 		return $commentID;
 	}
@@ -2315,6 +2337,9 @@ class Library {
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0 || Automod::isLevelsDisabled(2)) return false;
 		
+		$checkBan = Library::getPersonBan($person, 0);
+		if($checkBan) return false;
+		
 		$accountID = $person['accountID'];
 		$condition = $dailyID ? ">" : "=";
 		$level = self::getLevelByID($levelID);
@@ -2397,6 +2422,9 @@ class Library {
 		require __DIR__."/connection.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return false;
+		
+		$checkBan = Library::getPersonBan($person, 0);
+		if($checkBan) return false;
 		
 		$accountID = $person['accountID'];
 		$condition = $dailyID ? ">" : "=";
@@ -3818,23 +3846,23 @@ class Library {
 		return $user['userName'];
 	}
 	
-	public static function getPersonActions($person, $filters) {
+	public static function getPersonActions($person, $filters, $limit = false) {
 		require __DIR__."/connection.php";
 		
 		$accountID = $person['accountID'];
 		$IP = self::convertIPForSearching($person['IP'], true);
 		
-		$getActions = $db->prepare("SELECT * FROM actions WHERE (account = :accountID OR IP REGEXP :IP) AND (".implode(") AND (", $filters).") ORDER BY timestamp DESC");
+		$getActions = $db->prepare("SELECT * FROM actions WHERE (account = :accountID OR IP REGEXP :IP) AND (".implode(") AND (", $filters).") ORDER BY timestamp DESC".($limit ? ' LIMIT '.$limit : ''));
 		$getActions->execute([':accountID' => $accountID, ':IP' => $IP]);
 		$getActions = $getActions->fetchAll();
 		
 		return $getActions;
 	}
 	
-	public static function getActions($filters) {
+	public static function getActions($filters, $limit = false) {
 		require __DIR__."/connection.php";
 		
-		$getActions = $db->prepare("SELECT * FROM actions WHERE (".implode(") AND (", $filters).") ORDER BY timestamp DESC");
+		$getActions = $db->prepare("SELECT * FROM actions WHERE (".implode(") AND (", $filters).") ORDER BY timestamp DESC".($limit ? ' LIMIT '.$limit : ''));
 		$getActions->execute();
 		$getActions = $getActions->fetchAll();
 		
