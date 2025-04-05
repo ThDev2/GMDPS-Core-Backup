@@ -1,4 +1,3 @@
-if(typeof localStorage.navbar_state == "undefined") localStorage.navbar_state = 'true';
 if(typeof localStorage.player_volume == "undefined") localStorage.player_volume = 0.15;
 
 var dashboardLoader, dashboardBody, dashboardBase;
@@ -9,8 +8,7 @@ window.addEventListener('load', () => {
 	dashboardBody = document.getElementById("dashboard-body");
 	dashboardBase = document.querySelector("base");
 	
-	if(localStorage.navbar_state == 'true') dashboardBody.classList.add("hide");
-	else dashboardBody.classList.remove("hide");
+	dashboardBody.classList.add("hide");
 	
 	loadAudioPlayer();
 	updatePage();
@@ -20,13 +18,6 @@ window.addEventListener('load', () => {
 	
 	setTimeout(() => dashboardLoader.classList.add("hide"), 200);
 });
-
-function toggleNavbar() {
-	localStorage.navbar_state = localStorage.navbar_state == 'false' ? 'true' : 'false';
-	
-	if(localStorage.navbar_state == 'true') dashboardBody.classList.add("hide");
-	else dashboardBody.classList.remove("hide");
-}
 
 async function getPage(href, skipCheck = false) {
 	if(!skipCheck && ((window.location.href.endsWith(href) && href.length) || (!href.length && dashboardBase.getAttribute("href") == './'))) return false;
@@ -125,7 +116,7 @@ function changePage(response, href, skipCheck = false) {
 				className: 'error',
 			}).showToast();
 			
-			r(false);
+			return r(false);
 		}
 
 		if(!skipCheck) history.pushState(null, null, href);
@@ -208,6 +199,10 @@ function showToast(toastBody) {
 async function updatePage() {
 	for(const element of document.querySelectorAll("[dashboard-hide=true]")) element.remove();
 	for(const element of document.querySelectorAll("[dashboard-show=false]")) element.remove();
+	
+	const navbar = document.querySelector("nav");
+	navbar.addEventListener("mouseenter", () => dashboardBody.classList.remove("hide"));
+	navbar.addEventListener("mouseleave", () => dashboardBody.classList.add("hide"));
 	
 	const removeElements = dashboardBody.querySelectorAll('[dashboard-remove]');
 	removeElements.forEach(async (element) => {

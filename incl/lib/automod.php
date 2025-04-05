@@ -746,7 +746,7 @@ class Automod {
 			if(!$isWarned) {
 				self::logAutomodActions(13, $similarCommentsCount, $similarity, $commentsCount, $userID);
 				
-				if($commentsSpamUploadDisable) Library::banPerson(0, $userID, "No spamming!", 3, 1, (time() + $commentsSpamUploadDisable));
+				if($commentsSpamUploadDisable) Library::banPerson(0, $userID, "No spamming!", 3, 1, (time() + $commentsSpamUploadDisable), "Person tried to spam comments. (".$similarity." > ".$commentsCount." / 3)");
 				
 				//$gs->sendAccountPostsSpammerWarningWebhook($similarCommentsCount, $userID);
 			}
@@ -866,16 +866,31 @@ class Automod {
 		require __DIR__."/connection.php";
 		require_once __DIR__."/mainLib.php";
 		
+		$searchFilters = ['type = '.Action::ProfileStatsChange, 'account = '.$accountID, 'timestamp >= '.(time() - $statsTimeCheck)];
+		$statChanges = Library::getActions($searchFilters);
+		$statChangesCount = $statChanges ? count($statChanges) + 1 : 0;
+		
+		if(!$statChangesCount) return true;
+		
 		$searchFilters = ['type = '.Action::ProfileStatsChange, 'account = '.$accountID];
-		$statChanges = Library::getActions($searchFilters, 2);
+		$statChanges = Library::getActions($searchFilters, $statChangesCount);
 		
-		if(!$statChanges || count($statChanges) < 2) return true;
+		if(!$statChanges) return true;
 		
-		$timeBefore = $statChanges[1]['timestamp'];
-		$starsBefore = $statChanges[1]['value'];
-		$moonsBefore = $statChanges[1]['value6'];
-		$userCoinsBefore = $statChanges[1]['value4'];
-		$demonsBefore = $statChanges[1]['value3'];
+		$timeBefore = $starsBefore = $moonsBefore = $userCoinsBefore = $demonsBefore = 0;
+		
+		foreach($statChanges AS $index => $stat) {
+			if(!$index) {
+				$timeBefore = time();
+				continue;
+			}
+			
+			$timeBefore -= time() - $stat['timestamp'];
+			$starsBefore += $stat['value'];
+			$moonsBefore += $stat['value6'];
+			$userCoinsBefore += $stat['value4'];
+			$demonsBefore += $stat['value3'];
+		}
 		
 		$timeAfter = $statChanges[0]['timestamp'];
 		$starsAfter = $statChanges[0]['value'];
@@ -891,7 +906,9 @@ class Automod {
 		$demonsRatio = ($demonsAfter + $demonsBefore) / $timeRatio;
 		
 		if($starsRatio > $maxStarsPossible || $moonsRatio > $maxMoonsPossible || $userCoinsRatio > $maxUserCoinsPossible || $demonsRatio > $maxDemonsPossible) {
-			Library::banPerson(0, $accountID, "You're too fast at gaining stats.", 0, 0, 2147483647);
+			$maxText = 'Max in '.$statsTimeCheck.' seconds: ⭐'.$maxStarsPossible.' • 🌙'.$maxMoonsPossible.' • 🪙'.$maxUserCoinsPossible.' • 👿'.$maxDemonsPossible.' | User stats ratio: ⭐'.$starsRatio.' • 🌙'.$moonsRatio.' • 🪙'.$userCoinsRatio.' • 👿'.$demonsRatio;
+			
+			Library::banPerson(0, $accountID, "You're too good at gaining stats.", 0, 0, 2147483647, "Person gained too much stats in short time. (".$maxText.")");
 			return false;
 		}
 		

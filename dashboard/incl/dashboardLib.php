@@ -323,7 +323,7 @@ class Dashboard {
 		return self::renderTemplate('components/comment', $comment);
 	}
 	
-	public static function renderScoreCard($score, $person) {
+	public static function renderScoreCard($score, $person, $levelIsPlatformer) {
 		global $dbPath;
 		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
 		
@@ -351,6 +351,7 @@ class Dashboard {
 		$score['SCORE_CAN_SEE_HIDDEN'] = ($person['accountID'] == $user['accountID'] || Library::checkPermission($person, "dashboardModTools")) ? 'true' : 'false';
 		if($score['SCORE_CAN_SEE_HIDDEN'] == 'false') {
 			$score['clicks'] = 'Smartest one here? :trollface:';
+			if(!$levelIsPlatformer) $score['time'] = 'No time for ya!!!';
 		}
 		
 		if(isset($score['uploadDate'])) $score['timestamp'] = $score['uploadDate'];

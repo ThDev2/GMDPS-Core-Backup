@@ -13,9 +13,9 @@ if(!$person["success"]) {
 	Library::logAction($person, Action::FailedAccountBackup, strlen($saveData));
 	exit(CommonError::InvalidRequest);
 }
-
 $accountID = $person["accountID"];
 $userName = $person['userName'];
+
 $account = Library::getAccountByID($accountID);
 
 $saveDataArray = explode(";", $saveData);
@@ -42,6 +42,14 @@ $accountOrbs = explode('</'.$stringName.'>', explode('</'.$stringName.'><'.$keyN
 $accountCompletedOfficialLevels = explode('</'.$stringName.'>', explode('</'.$stringName.'><'.$keyName.'>3</'.$keyName.'><'.$stringName.'>', explode('<'.$keyName.'>GS_value</'.$keyName.'>', $saveDataDecoded)[1])[1])[0] ?: 0;
 $accountCompletedOnlineLevels = explode('</'.$stringName.'>', explode('</'.$stringName.'><'.$keyName.'>4</'.$keyName.'><'.$stringName.'>', str_replace(['<dict>', '<d>'], '</'.$stringName.'>', explode('<'.$keyName.'>GS_value</'.$keyName.'>', $saveDataDecoded)[1]))[1])[0] ?: 0;
 $accountLevels = $accountCompletedOfficialLevels + $accountCompletedOnlineLevels;
+
+$levelsDataDecoded = Security::decodeSaveFile($saveDataArray[1]);
+
+$isLevelsDataValid = simplexml_load_string($levelsDataDecoded);
+if(!$isLevelsDataValid) {
+	Library::logAction($person, Action::FailedAccountBackup, strlen($saveData));
+	exit(CommonError::InvalidRequest);
+}
 
 $saveData = Security::encodeSaveFile($saveDataDecoded).';'.$saveDataArray[1];
 Library::updateOrbsAndCompletedLevels($person, $accountOrbs, $accountLevels);

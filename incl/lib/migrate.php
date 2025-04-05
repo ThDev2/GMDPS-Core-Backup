@@ -492,6 +492,9 @@ if(!$installed) {
 	$check = $db->query("SELECT count(*) FROM `accounts` WHERE mail = 'none' OR mail = 'activated'");
 		$exist = $check->fetchColumn();
 		if($exist) $db->query("UPDATE accounts SET mail = '' WHERE mail = 'none' OR mail = 'activated'");
+	$check = $db->query("SHOW COLUMNS FROM `bans` LIKE 'modReason'");
+		$exist = $check->fetchAll();
+		if(empty($exist)) $db->query("ALTER TABLE `bans` ADD `modReason` VARCHAR(2048) NOT NULL DEFAULT '' AFTER `reason`");
 	
 	$lines = file(__DIR__.'/../../config/dashboard.php');
 	$first_line = $lines[2];

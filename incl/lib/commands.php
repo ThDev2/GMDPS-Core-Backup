@@ -399,7 +399,8 @@ class Commands {
 			case '!d':
 				if(!Library::checkPermission($person, 'commandDelete') && $person['userID'] != $level['userID']) return "You ".Library::textColor("don't have permissions", Color::Red)." to use command ".Library::textColor($command, Color::SkyBlue)."!";
 				
-				Library::deleteLevel($levelID, $person);
+				$deleteLevel = Library::deleteLevel($levelID, $person);
+				if(!$deleteLevel) return "You ".Library::textColor("can't", Color::Red)." delete ".Library::textColor($level['levelName'], Color::SkyBlue).".";
 				
 				return "You ".Library::textColor("successfully", Color::Green)." deleted ".Library::textColor($level['levelName'], Color::SkyBlue)."!";
 		}

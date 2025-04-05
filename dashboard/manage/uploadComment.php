@@ -7,7 +7,7 @@ require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 $sec = new Security();
 
 $person = Dashboard::loginDashboardUser();
-if(!$person['success']) exit(Dashboard::renderToast("xmark", Dashboard::string("errorLoginRequired"), "error"));
+if(!$person['success']) exit(Dashboard::renderToast("xmark", Dashboard::string("errorLoginRequired"), "error", "account/login"));
 
 if(isset($_POST['levelID']) && isset($_POST['comment'])) {
 	$levelID = Escape::number($_POST['levelID']);

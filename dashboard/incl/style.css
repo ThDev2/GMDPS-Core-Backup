@@ -596,6 +596,14 @@ nav::-webkit-scrollbar {
 	box-sizing: border-box;
 	
 	gap: 5px;
+	
+	transition: 0.2s;
+}
+
+.levelCard:hover {
+	background-color: #86868624;
+	border: 1px solid #86868634;
+	box-shadow: 0px 0px 20px 0px #86868620;
 }
 
 .levelTitle {
@@ -1193,6 +1201,7 @@ i[onclick] {
 .inlineForm {
 	display: inline-flex;
 	gap: 10px;
+	margin: 0px;
 }
 
 .inlineForm button {

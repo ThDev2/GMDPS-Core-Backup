@@ -247,4 +247,14 @@ $dontRateYourOwnLevels = false;
 	False — Hide creator comment rating
 */
 $showCreatorRating = true;
+
+/*
+	Level update lock also disallows deleting level
+	
+	Should levels with locked updating be locked from deleting too?
+	
+	True — Disallow deleting if level is update locked
+	False — Allow deleting if level is update locked
+*/
+$disallowDeletingUpdateLockedLevel = true;
 ?>

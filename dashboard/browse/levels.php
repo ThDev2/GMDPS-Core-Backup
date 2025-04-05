@@ -50,6 +50,11 @@ if($_GET['id']) {
 	$level['LEVEL_SONG_URL'] = urlencode(urldecode($song['download'])) ?: '';
 	$level['LEVEL_IS_CUSTOM_SONG'] = isset($song['ID']) ? 'true' : 'false';
 	
+	$extraSongs = $level['songIDs'] ? count(explode(',', $level['songIDs'])) : 0;
+	$level['LEVEL_SONGS'] = $extraSongs + ($song ? 1 : 0);
+	$extraSFXs = $level['sfxIDs'] ? count(explode(',', $level['sfxIDs'])) : 0;
+	$level['LEVEL_SFXS'] = $extraSFXs;
+	
 	$level['LEVEL_HAS_REQUESTED_STARS'] = $level['requestedStars'] ? 'true' : 'false';
 	
 	$levelStatsCount = Library::getLevelStatsCount($levelID);
@@ -106,11 +111,13 @@ if($_GET['id']) {
 				$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate('browse/comments', $additionalData);
 				break;
 			case 'scores':
+				$levelIsPlatformer = $level['levelLength'] == 5;
+			
 				$type = Escape::number($_GET['type']) ?: 0;
 				$mode = $_GET['mode'] == 1 ? 'points' : 'time';
 				$dailyID = $_GET['isDaily'] ? 1 : 0;
 				
-				$scores = $level['levelLength'] == 5 ? Library::getPlatformerLevelScores($levelID, $person, $type, $dailyID, $mode) : Library::getLevelScores($levelID, $person, $type, $dailyID);
+				$scores = $levelIsPlatformer ? Library::getPlatformerLevelScores($levelID, $person, $type, $dailyID, $mode) : Library::getLevelScores($levelID, $person, $type, $dailyID);
 				
 				$pageNumber = $pageOffset * -1;
 				$scoreNumber = $pageOffset;
@@ -122,7 +129,7 @@ if($_GET['id']) {
 					if($scoreNumber > $pageOffset + 10) break;
 					
 					$score['SCORE_NUMBER'] = $scoreNumber;
-					$additionalPage .= Dashboard::renderScoreCard($score, $person);
+					$additionalPage .= Dashboard::renderScoreCard($score, $person, $levelIsPlatformer);
 				}
 				
 				$pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
@@ -133,7 +140,7 @@ if($_GET['id']) {
 				$additionalData = [
 					'ADDITIONAL_PAGE' => $additionalPage,
 					'LEVEL_NO_SCORES' => !count($scores) ? 'true' : 'false',
-					'LEVEL_IS_PLATFORMER' => $level['levelLength'] == 5 ? 'true' : 'false',
+					'LEVEL_IS_PLATFORMER' => $levelIsPlatformer ? 'true' : 'false',
 					'LEVEL_IS_DAILY' => $dailyID ? 'true' : 'false',
 					'COMMENT_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
 					'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
@@ -147,6 +154,10 @@ if($_GET['id']) {
 				if(!$additionalPage) $additionalData['LEVEL_NO_SCORES'] = 'true';
 				
 				$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate('browse/scores', $additionalData);
+				break;
+			case 'songs':
+			case 'sfxs':
+				$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate('browse/manage', $additionalData);
 				break;
 			case 'manage':
 				if(!Library::checkPermission($person, "dashboardManageLevels")) exit(Dashboard::renderErrorPage(Dashboard::string("levelsTitle"), Dashboard::string("errorNoPermission"), '../../../'));

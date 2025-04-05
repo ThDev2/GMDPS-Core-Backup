@@ -67,7 +67,7 @@ class CommentsError {
 	const NothingFound = "-2";
 }
 
-class Action {
+class Action { // Last action ID is 56
 	const AccountRegister = 1;
 	const UserCreate = 51;
 	
@@ -147,7 +147,7 @@ class Action {
 	const LevelDescriptionChange = 21;
 }
 
-class ModeratorAction {
+class ModeratorAction { // Last action ID is 46
 	const LevelRate = 1;
 	const LevelDailySet = 5;
 	const LevelDeletion = 6;
@@ -165,6 +165,7 @@ class ModeratorAction {
 	const LevelScoreDelete = 45;
 
 	const PersonBan = 28;
+	const PersonUnban = 46;
 	
 	// To be done with dashboard
 	const LevelSuggestRemove = 40;

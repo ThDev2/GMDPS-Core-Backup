@@ -447,7 +447,7 @@ class Library {
 		return $bans;
 	}
 	
-	public static function banPerson($modID, $person, $reason, $banType, $personType, $expires) {
+	public static function banPerson($modID, $person, $reason, $banType, $personType, $expires, $modReason = '') {
 		require __DIR__."/connection.php";
 		require_once __DIR__."/ip.php";
 		
@@ -480,14 +480,13 @@ class Library {
 		}
 		
 		$reason = base64_encode($reason);
-		$ban = $db->prepare('INSERT INTO bans (modID, person, reason, banType, personType, expires, timestamp) VALUES (:modID, :person, :reason, :banType, :personType, :expires, :timestamp)');
-		$ban->execute([':modID' => $modID, ':person' => $person, ':reason' => $reason, ':banType' => $banType, ':personType' => $personType, ':expires' => $expires, ':timestamp' => ($modID != 0 ? time() : 0)]);
+		if(!empty($modReason)) $modReason = base64_encode($modReason);
+		$ban = $db->prepare('INSERT INTO bans (modID, person, reason, modReason, banType, personType, expires, timestamp) VALUES (:modID, :person, :reason, :modReason, :banType, :personType, :expires, :timestamp)');
+		$ban->execute([':modID' => $modID, ':person' => $person, ':reason' => $reason, ':modReason' => $modReason, ':banType' => $banType, ':personType' => $personType, ':expires' => $expires, ':timestamp' => ($modID != 0 ? time() : 0)]);
 		$banID = $db->lastInsertId();
 		
-		if($modID != 0) {
-			self::logModeratorAction($moderatorPerson, ModeratorAction::PersonBan, $person, $reason, $personType, $banType, $expires, 1);
-			//$this->sendBanWebhook($banID, $modID);
-		}
+		self::logModeratorAction($moderatorPerson, ModeratorAction::PersonBan, $person, $reason, $personType, $banType, $expires, $modReason);
+		//$this->sendBanWebhook($banID, $modID);
 		
 		return $banID;
 	}
@@ -523,10 +522,8 @@ class Library {
 		
 		$unban = $db->prepare('UPDATE bans SET isActive = 0 WHERE banID = :banID');
 		$unban->execute([':banID' => $banID]);
-		if($modID != 0) {
-			self::logModeratorAction($moderatorPerson, ModeratorAction::PersonBan, $ban['person'], $ban['reason'], $ban['personType'], $ban['banType'], $ban['expires'], 0);
-			//$this->sendBanWebhook($banID, $modID);
-		}
+		self::logModeratorAction($moderatorPerson, ModeratorAction::PersonUnban, $ban['person'], $ban['reason'], $ban['personType'], $ban['banType'], $ban['expires'], $ban['modReason']);
+		//$this->sendBanWebhook($banID, $modID);
 		
 		return true;
 	}
@@ -2285,6 +2282,8 @@ class Library {
 		
 		$level = self::getLevelByID($levelID);
 		
+		if($disallowDeletingUpdateLockedLevel && $level['updateLocked']) return false;
+		
 		$deleteLevel = $db->prepare("UPDATE levels SET isDeleted = 1 WHERE levelID = :levelID AND isDeleted = 0");
 		$deleteLevel->execute([':levelID' => $levelID]);
 		
@@ -2344,12 +2343,12 @@ class Library {
 		$condition = $dailyID ? ">" : "=";
 		$level = self::getLevelByID($levelID);
 		
-		if($coins > $level['coins']) {
-			self::banPerson(0, $accountID, "Person tried to post level score with invalid coins value. (".$coins.")", 0, 0, 2147483647);
+		if($coins < 0 || $coins > $level['coins']) {
+			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid coins value. (".$coins.")");
 			return false;
 		}
 		if($percent < 0 || $percent > 100) {
-			self::banPerson(0, $accountID, "Person tried to post level score with invalid percent value. (".$percent.")", 0, 0, 2147483647);
+			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid percent value. (".$percent.")");
 			return false;
 		}
 		
@@ -2358,7 +2357,7 @@ class Library {
 		if(!empty($progressesArray)) foreach($progressesArray AS &$progressValue) $progressesPercent += $progressValue;
 
 		if($percent != $progressesPercent) {
-			self::banPerson(0, $accountID, "Person tried to post level score with invalid progresses value. (".$percent.", \"".$progresses."\" -> ".$progressesPercent.")", 0, 0, 2147483647);
+			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid progresses value. (".$percent.", \"".$progresses."\" -> ".$progressesPercent.")");
 			return false;
 		}
 		
@@ -2431,12 +2430,12 @@ class Library {
 		$level = self::getLevelByID($levelID);
 		
 		if($coins > $level['coins']) {
-			self::banPerson(0, $accountID, "Person tried to post level score with invalid coins value. (".$coins.")", 0, 0, 2147483647);
+			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid coins value. (".$coins.")");
 			return false;
 		}
 		
 		if($scores['time'] < 0 || $scores['points'] < 0) {
-			self::banPerson(0, $accountID, "Person tried to post level score with invalid scores value. (time: ".$scores['time'].", points: ".$scores['points'].")", 0, 0, 2147483647);
+			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid scores value. (time: ".$scores['time'].", points: ".$scores['points'].")");
 			return false;
 		}
 		

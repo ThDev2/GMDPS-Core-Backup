@@ -60,7 +60,7 @@ class Cron {
 			$getUser = Library::getUserByID($ban['userID']);
 			$maxText = 'MAX: ⭐'.$stars.' • 🌙'.$moons.' • 👿'.$demons.' • 🪙'.$coins.' | USER: ⭐'.$getUser['stars'].' • 🌙'.$getUser['moons'].' • 👿'.$getUser['demons'].' • 🪙'.$getUser['userCoins'];
 			
-			Library::banPerson(0, $ban['userID'], $maxText, 0, 1, 2147483647);
+			Library::banPerson(0, $ban['userID'], "You're too good at gaining stats.", 0, 1, 2147483647, $maxText);
 		}
 		
 		Library::logAction($person, Action::CronAutoban, $stars, $coins, $demons, $moons, count($getCheaters));
@@ -103,7 +103,7 @@ class Cron {
 				) AS featuredTable ON usersTable.userID = featuredTable.userID
 				LEFT JOIN
 				(
-					SELECT starEpic as epic, userID FROM levels WHERE starEpic != 0 AND isCPShared = 0 AND isDeleted = 0 ".$unlistedQuery." GROUP BY(userID) 
+					SELECT SUM(starEpic) as epic, userID FROM levels WHERE starEpic != 0 AND isCPShared = 0 AND isDeleted = 0 ".$unlistedQuery." GROUP BY(userID) 
 				) AS epicTable ON usersTable.userID = epicTable.userID
 			) calculated
 			ON users.userID = calculated.userID
