@@ -6,26 +6,26 @@ require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 $sec = new Security();
 
 $person = Dashboard::loginDashboardUser();
-if(!$person['success']) exit(Dashboard::renderErrorPage(Dashboard::string("yourLevelsTitle"), Dashboard::string("errorLoginRequired")));
-$userID = $person['userID'];
+if(!$person['success']) exit(Dashboard::renderErrorPage(Dashboard::string("songsTitle"), Dashboard::string("errorLoginRequired")));
+$accountID = $person['accountID'];
 
-$order = "uploadDate";
+$order = "reuploadTime";
 $orderSorting = "DESC";
-$filters = ["levels.userID = '".$userID."'"];
+$filters = ["songs.reuploadID > 0"];
 $pageOffset = is_numeric($_GET["page"]) ? (Escape::number($_GET["page"]) - 1) * 10 : 0;
 $page = '';
 
-$levels = Library::getLevels($filters, $order, $orderSorting, '', $pageOffset, false);
+$songs = Library::getSongs($filters, $order, $orderSorting, '', $pageOffset, false);
 
-foreach($levels['levels'] AS &$level) $page .= Dashboard::renderLevelCard($level);
+foreach($songs['songs'] AS &$song) $page .= Dashboard::renderSongCard($song, $person);
 
 $pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
-$pageCount = floor($levels['count'] / 10) + 1;
+$pageCount = floor($songs['count'] / 10) + 1;
 
 $dataArray = [
 	'ADDITIONAL_PAGE' => $page,
-	'LEVEL_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
-	'LEVEL_NO_LEVELS' => empty($page) ? 'true' : 'false',
+	'SONG_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
+	'SONG_NO_SONGS' => empty($page) ? 'true' : 'false',
 	
 	'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 	'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
@@ -36,7 +36,7 @@ $dataArray = [
 	'LAST_PAGE_BUTTON' => "getPage('@page=".$pageCount."')"
 ];
 
-$fullPage = Dashboard::renderTemplate("browse/levels", $dataArray);
+$fullPage = Dashboard::renderTemplate("browse/songs", $dataArray);
 
-exit(Dashboard::renderPage("general/wide", Dashboard::string("yourLevelsTitle"), "../", $fullPage));
+exit(Dashboard::renderPage("general/wide", Dashboard::string("songsTitle"), "../", $fullPage));
 ?>

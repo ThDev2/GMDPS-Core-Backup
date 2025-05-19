@@ -12,9 +12,11 @@ $language['password'] = 'Пароль';
 $language['profile'] = 'Профиль';
 $language['settings'] = 'Настройки';
 $language['main'] = 'Главная';
-$language['userProfile'] = 'Профиль %1%s';
+$language['userProfile'] = 'Профиль %1$s';
+$language['clanProfile'] = 'Клан %1$s';
 $language['nothingIsPlaying'] = 'Ничего не играет...';
 $language['manage'] = 'Управление';
+$language['view'] = 'Посмотреть';
 
 /* Panel strings */
 $language['hidePanel'] = 'Скрыть панель';
@@ -30,6 +32,7 @@ $language['yourSFXsTitle'] = 'Ваши звуковые эффекты';
 
 $language['browse'] = 'Просмотр';
 $language['levelsTitle'] = 'Уровни';
+$language['songsTitle'] = 'Песни';
 
 $language['messengerTitle'] = 'Мессенджер';
 $language['loginToAccountTitle'] = 'Войти в аккаунт';
@@ -83,7 +86,7 @@ $language['loginToAccountButton'] = 'Войти';
 $language['changePasswordOld'] = 'Старый пароль';
 $language['changePasswordNew'] = 'Новый пароль';
 
-$language['levelTitle'] = '<text class="big">%1$s</text> от %2$s';
+$language['levelTitle'] = '<text class="big">%1$s</text> от %2$s'; // %1$s — level name, %2$s — username
 $language['stars'] = 'Звёзды';
 $language['requestedStars'] = 'Запрошенные звёзды';
 $language['noDescription'] = 'Нет описания';
@@ -95,8 +98,10 @@ $language['dislikes'] = 'Дизлайки';
 $language['viewLevel'] = 'Посмотреть уровень';
 $language['unknownSong'] = 'Неизвестная песня';
 $language['uploadDate'] = 'Дата публикации';
+$language['noLevels'] = 'Уровней нет!';
 
 $language['comments'] = 'Комментарии';
+$language['deleteComment'] = 'Удалить комментарий';
 $language['scores'] = 'Таблица лидеров';
 $language['manageLevel'] = 'Управление уровнем';
 $language['nothingOpened'] = 'Ничего не открыто!';
@@ -119,7 +124,25 @@ $language['clicks'] = 'Клики';
 $language['time'] = 'Время';
 
 $language['writeSomething'] = 'Напишите что-нибудь!';
-$language['bannedToast'] = 'Вы заблокированы: "%1$s", бан пройдёт %2$s';
+$language['bannedToast'] = 'Вы заблокированы: "%1$s", бан пройдёт %2$s'; // %1$s — ban reason, %2$s — in X time
+
+$language['songs'] = 'Песни';
+$language['sfxs'] = 'Звуковые эффекты';
 
 $language['pageText'] = 'Страница %1$s из %2$s';
+
+$language['dashboardSettingsTitle'] = 'Настройки панели';
+
+$language['languageTitle'] = 'Язык';
+$language['languageDesc'] = 'Панель имеет кучу языков, выберите тот, который вам ближе всего!';
+
+$language['notInClan'] = 'Не в клане';
+
+$language['songTitle'] = '<text class="big">%1$s</text> — <text class="big">%2$s</text>'; // %1$s — song author, %2$s — song title
+$language['songID'] = 'ID песни';
+$language['usageCount'] = 'Кол-во использований';
+$language['favouritesCount'] = 'Кол-во лайкнувших';
+$language['noSongs'] = 'Песен нет!';
+$language['editSong'] = 'Изменить песню';
+$language['downloadSong'] = 'Скачать песню';
 ?>

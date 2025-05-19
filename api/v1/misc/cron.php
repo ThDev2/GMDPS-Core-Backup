@@ -14,10 +14,10 @@ if(!$person["success"]) {
 }
 
 // Check if cron's on cooldown
-$runCron = Cron::doEverything($person["accountID"], true);
+$runCron = Cron::doEverything($person, true);
 if(!$runCron) {
 	http_response_code(403);
-    exit(json_encode(['success' => false, 'cause' => 'Please wait a few minutes before running Cron again'])); 
+    exit(json_encode(['success' => false, 'cause' => 'Please wait a bit before running Cron again'])); 
 }
 
 exit(json_encode(['success' => true])); 

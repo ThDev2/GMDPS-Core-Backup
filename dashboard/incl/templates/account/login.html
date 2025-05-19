@@ -16,6 +16,8 @@
 			<input class="inputStyle" type="password" name="password" autocomplete="gdps-dashboard-password" placeholder="•••••••••••••" />
 		</div>
 		
-		<button type="button" onclick="%LOGIN_BUTTON_ONCLICK%">%TEXT_loginToAccountButton%</button>
+		<input type="hidden" name="lastLocation" value="%LOGIN_HTTP_REFERER%"></input>
+		
+		<button class="button" type="button" onclick="%LOGIN_BUTTON_ONCLICK%">%TEXT_loginToAccountButton%</button>
 	</form>
 </div>

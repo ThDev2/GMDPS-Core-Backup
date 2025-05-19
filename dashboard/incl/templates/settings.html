@@ -1,0 +1,61 @@
+<div class="wideBox grid">
+	<div class="contentDiv vertical">
+		<div class="settingDescription">
+			<h2>%TEXT_languageTitle%</h2>
+			<h3>%TEXT_languageDesc%</h3>
+		</div>
+		
+		<div class="languagesDiv">
+			<div class="languageDiv">
+				<div class="settingDescription">
+					<h2>
+						<img src="incl/icons/flag_EN.svg"></img> English
+					</h2>
+					<h3>%LANGUAGE_EN%</h3>
+				</div>
+				
+				<input class="radio" type="radio" name="lang" value="EN" dashboard-check-change></input>
+			</div>
+			
+			<div class="languageDiv">
+				<div class="settingDescription">
+					<h2>
+						<img src="incl/icons/flag_RU.svg"></img> Русский
+					</h2>
+					<h3>%LANGUAGE_RU%</h3>
+				</div>
+				
+				<input class="radio" type="radio" name="lang" value="RU" dashboard-check-change></input>
+			</div>
+		</div>
+	</div>
+	
+	<div class="contentDiv vertical">
+		<div class="settingDiv horisontal">
+			<div class="usernameDiv">
+				<div class="mainIcon">
+					<img dashboard-show="%IS_LOGGED_IN%" src="%PROFILE_ICON%"></img>
+					<i dashboard-hide="%IS_LOGGED_IN%" class='fa-solid fa-sign-in'></i>
+				</div>
+				
+				<div class="mainUsername">
+					<h1 class="username" style="%ACCOUNT_COLOR%" dashboard-show="%IS_LOGGED_IN%" href="profile/%USERNAME%" title="%PROFILE_TITLE%">%USERNAME%</h1>
+					<h1 dashboard-hide="%IS_LOGGED_IN%">%TEXT_loginToAccountTitle%</h1>
+					
+					<h2 style="%CLAN_COLOR%" dashboard-show="%IS_LOGGED_IN%" href="clan/%CLAN_NAME%" title="%CLAN_TITLE%">%CLAN_NAME%</h2>
+				</div>
+			</div>
+			
+			<button dashboard-show="%IS_LOGGED_IN%" class="button settingsButton" type="button" onclick="getPage('profile/%USERNAME%/settings')">
+				<i class='fa-solid fa-gear'></i>
+			</button>
+			<button dashboard-hide="%IS_LOGGED_IN%" class="button settingsButton" type="button" onclick="getPage('account/login')">
+				<i class='fa-solid fa-sign-in'></i>
+			</button>
+		</div>
+	</div>
+</div>
+
+<script id="pageScript">
+	document.querySelector("input[type=radio][value=" + localStorage.language + "]").checked = true;
+</script>

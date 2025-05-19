@@ -32,7 +32,7 @@ if($_GET['id']) {
 	$userColor = str_replace(",", " ", $userAppearance['commentColor']);
 	
 	if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-	if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+	if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
 	
 	$level['LEVEL_TITLE'] = sprintf(Dashboard::string('levelTitle'), $level['levelName'], Dashboard::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes)));
 	$level['LEVEL_DESCRIPTION'] = htmlspecialchars(Escape::url_base64_decode($level['levelDesc'])) ?: "<i>".Dashboard::string('noDescription')."</i>";
@@ -50,10 +50,18 @@ if($_GET['id']) {
 	$level['LEVEL_SONG_URL'] = urlencode(urldecode($song['download'])) ?: '';
 	$level['LEVEL_IS_CUSTOM_SONG'] = isset($song['ID']) ? 'true' : 'false';
 	
-	$extraSongs = $level['songIDs'] ? count(explode(',', $level['songIDs'])) : 0;
-	$level['LEVEL_SONGS'] = $extraSongs + ($song ? 1 : 0);
-	$extraSFXs = $level['sfxIDs'] ? count(explode(',', $level['sfxIDs'])) : 0;
-	$level['LEVEL_SFXS'] = $extraSFXs;
+	$songIDs = $level['songIDs'] ? explode(',', $level['songIDs']) : [];
+	if($song['ID']) array_unshift($songIDs, $level['songID']);
+	$sfxIDs = $level['sfxIDs'] ? explode(',', $level['sfxIDs']) : [];
+	
+	$songIDs = array_unique($songIDs);
+	$sfxIDs = array_unique($sfxIDs);
+	
+	$level['LEVEL_SONGS'] = count($songIDs);
+	$level['LEVEL_SFXS'] = count($sfxIDs);
+	
+	$level['LEVEL_SONG_IDS'] = implode(',', $songIDs);
+	$level['LEVEL_SFX_IDS'] = $level['sfxIDs'];
 	
 	$level['LEVEL_HAS_REQUESTED_STARS'] = $level['requestedStars'] ? 'true' : 'false';
 	
@@ -98,8 +106,10 @@ if($_GET['id']) {
 					'LEVEL_NO_COMMENTS' => !$comments['count'] ? 'true' : 'false',
 					'COMMENT_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
 					'LEVEL_ID' => $levelID,
+					
 					'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 					'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
+					
 					'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",
 					'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
 					'NEXT_PAGE_BUTTON' => "getPage('@page=".($pageNumber + 1)."')",
@@ -143,8 +153,10 @@ if($_GET['id']) {
 					'LEVEL_IS_PLATFORMER' => $levelIsPlatformer ? 'true' : 'false',
 					'LEVEL_IS_DAILY' => $dailyID ? 'true' : 'false',
 					'COMMENT_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
+					
 					'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 					'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
+					
 					'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",
 					'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
 					'NEXT_PAGE_BUTTON' => "getPage('@page=".($pageNumber + 1)."')",
@@ -156,6 +168,53 @@ if($_GET['id']) {
 				$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate('browse/scores', $additionalData);
 				break;
 			case 'songs':
+				if(empty($level['LEVEL_SONG_IDS'])) {
+					$pageNumber = $pageCount = 1;
+				
+					$additionalData = [
+						'ADDITIONAL_PAGE' => '',
+						'SONG_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
+						'SONG_NO_SONGS' => 'true',
+						
+						'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
+						'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
+						
+						'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",
+						'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
+						'NEXT_PAGE_BUTTON' => "getPage('@page=".($pageNumber + 1)."')",
+						'LAST_PAGE_BUTTON' => "getPage('@page=".$pageCount."')"
+					];
+					
+					$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate("browse/songs", $additionalData);
+					break;
+				}
+				
+				$filters = ["songs.ID IN (".Escape::multiple_ids($level['LEVEL_SONG_IDS']).")"];
+				$additionalPage = '';
+
+				$songs = Library::getSongs($filters, '', '', '', $pageOffset, false);
+
+				foreach($songs['songs'] AS &$song) $additionalPage .= Dashboard::renderSongCard($song, $person);
+
+				$pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
+				$pageCount = floor($songs['count'] / 10) + 1;
+
+				$additionalData = [
+					'ADDITIONAL_PAGE' => $additionalPage,
+					'SONG_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
+					'SONG_NO_SONGS' => empty($additionalPage) ? 'true' : 'false',
+					
+					'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
+					'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
+					
+					'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",
+					'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
+					'NEXT_PAGE_BUTTON' => "getPage('@page=".($pageNumber + 1)."')",
+					'LAST_PAGE_BUTTON' => "getPage('@page=".$pageCount."')"
+				];
+				
+				$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate("browse/songs", $additionalData);
+				break;
 			case 'sfxs':
 				$level['LEVEL_ADDITIONAL_PAGE'] = Dashboard::renderTemplate('browse/manage', $additionalData);
 				break;
@@ -186,14 +245,20 @@ $pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
 $pageCount = floor(($levels['count'] - 1) / 10) + 1;
 
 $dataArray = [
-	'LEVEL_PAGE' => $page,
+	'ADDITIONAL_PAGE' => $page,
 	'LEVEL_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
+	'LEVEL_NO_LEVELS' => empty($page) ? 'true' : 'false',
+	
 	'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 	'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
+	
 	'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",
 	'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "@page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
 	'NEXT_PAGE_BUTTON' => "getPage('@page=".($pageNumber + 1)."')",
 	'LAST_PAGE_BUTTON' => "getPage('@page=".$pageCount."')"
 ];
-exit(Dashboard::renderPage("browse/levels", Dashboard::string("levelsTitle"), '../', $dataArray));
+
+$fullPage = Dashboard::renderTemplate("browse/levels", $dataArray);
+
+exit(Dashboard::renderPage("general/wide", Dashboard::string("levelsTitle"), "../", $fullPage));
 ?>

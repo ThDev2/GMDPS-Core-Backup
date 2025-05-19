@@ -1,0 +1,63 @@
+<div class="contentDiv">
+	<div class="horisontal">
+		<div class="vertical">
+			<div class="levelTitle">
+				<h2>%SONG_TITLE%</h2>
+				
+				<button class="contents songButton"
+					dashboard-title="%SONG_NAME%"
+					dashboard-author="%SONG_AUTHOR%"
+					dashboard-url="%SONG_URL%"
+					dashboard-song="%ID%"
+				>
+					<i class="fa-solid fa-circle-play"></i>
+				</button>
+			</div>
+		</div>
+		
+		<button class="button squareButton"
+			onclick="downloadSong('%SONG_AUTHOR%', '%SONG_NAME%', '%SONG_URL%')"
+			title="%TEXT_downloadSong%"
+		>
+			<i class="fa-solid fa-download"></i>
+		</button>
+		
+		<button class="button squareButton titleToRight"
+			dashboard-show="%SONG_CAN_CHANGE%"
+			onclick="getPage('songs/editSong')"
+			title="%TEXT_editSong%"
+		>
+			<i class="fa-solid fa-pencil"></i>
+		</button>
+	</div>
+	
+	<div class="horisontal stats">
+		<div class="songCard">
+			<button class="contents userButton">%SONG_USER%</button>
+		</div>
+		
+		<div class="levelStats card">
+			<text class="levelStat" title="%TEXT_songID%">
+				<i class="fa-solid fa-music"></i>
+				<text dashboard-copy>%ID%</text>
+			</text>
+		
+			<text class="levelStat" title="%TEXT_uploadDate%">
+				<i class="fa-solid fa-calendar"></i>
+				<text dashboard-date="%reuploadTime%"></text>
+			</text>
+		
+			<text class="levelStat" title="%TEXT_usageCount%">
+				<i class="fa-solid fa-gamepad"></i>
+				%levelsCount%
+			</text>
+			
+			<button class="button titleToRight" type="button" title="%TEXT_favouritesCount%" onclick="%LEVEL_BUTTON_ONCLICK%">
+				<text class="levelStat">
+					<i class="fa-solid fa-heart"></i>
+					%favouritesCount%
+				</text>
+			</button>
+		</div>
+	</div>
+</div>

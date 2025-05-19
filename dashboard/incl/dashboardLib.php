@@ -150,6 +150,14 @@ class Dashboard {
 		
 		if(isset($GLOBALS['core_cache']['dashboard']['language'])) return $GLOBALS['core_cache']['dashboard']['language'];
 		
+		if(!$_COOKIE['lang']) {
+			//if(file_exists(__DIR__.'/langs/'.strtoupper(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2))).'.php') $_COOKIE['lang'] = strtoupper(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2));
+			//else $_COOKIE['lang'] = 'EN';
+			$_COOKIE['lang'] = 'EN';
+				
+			setcookie("lang", $_COOKIE['lang'], 2147483647, "/");
+		}
+		
 		$userLanguage = Escape::latin_no_spaces($_COOKIE['lang'], 2);
 		if(!file_exists(__DIR__."/langs/".$userLanguage.".php")) $userLanguage = 'EN';
 		
@@ -161,6 +169,16 @@ class Dashboard {
 		return $language;
 	}
 	
+	public static function loadCredits() {
+		if(isset($GLOBALS['core_cache']['dashboard']['languageCredits'])) return $GLOBALS['core_cache']['dashboard']['languageCredits'];
+		
+		$languageCredits = json_decode(file_get_contents(__DIR__."/credits.json"), true);
+		
+		$GLOBALS['core_cache']['dashboard']['languageCredits'] = $languageCredits;
+		
+		return $languageCredits;
+	}
+	
 	/*
 		Render pages
 	*/
@@ -169,6 +187,8 @@ class Dashboard {
 		global $dbPath;
 		require __DIR__."/../".$dbPath."config/dashboard.php";
 		require_once __DIR__."/../".$dbPath."incl/lib/exploitPatch.php";
+		
+		if(!is_array($dataArray)) $dataArray = ['PAGE' => $dataArray];
 		
 		$person = self::loginDashboardUser();
 		$userID = $person['userID'];
@@ -180,12 +200,15 @@ class Dashboard {
 		$iconKit = self::getUserIconKit($userID);
 		
 		$mainPageData = [
+			'PAGE' => $templatePage,
+			
 			'PAGE_TITLE' => $pageTitle,
 			'GDPS_NAME' => $gdps,
 			'PAGE_BASE' => $pageBase,
 			'DASHBOARD_FAVICON' => $dashboardFavicon,
 			'DATABASE_PATH' => $dbPath,
 			'STYLE_TIMESTAMP' => filemtime(__DIR__."/style.css"),
+			'SCRIPT_TIMESTAMP' => filemtime(__DIR__."/script.js"),
 			
 			'FAILED_TO_LOAD_TEXT' => "<i class='fa-solid fa-xmark'></i>".self::string("errorFailedToLoadPage"),
 			'COPIED_TEXT' => "<i class='fa-solid fa-copy'></i>".self::string("successCopiedText"),
@@ -196,7 +219,6 @@ class Dashboard {
 			'USERNAME' => $person['success'] ? $person['userName'] : '',
 			'PROFILE_ICON' => $person['success'] ? $iconKit['main'] : '',
 			
-			'PAGE' => $templatePage,
 			'FOOTER' => ""
 		];
 		
@@ -205,6 +227,9 @@ class Dashboard {
 		
 		$allStrings = self::allStrings();
 		foreach($allStrings AS $string => $value) $mainPageData['TEXT_'.$string] = $value;
+		
+		$languageCredits = self::loadCredits();
+		foreach($languageCredits['languages'] AS $string => $value) $mainPageData['LANGUAGE_'.$string] = $value;
 		
 		$page = self::renderTemplate('main', $mainPageData);
 		
@@ -268,7 +293,7 @@ class Dashboard {
 		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
 		
 		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
 		
 		$song = $level['songID'] ? Library::getSongByID($level['songID']) : Library::getAudioTrack($level['audioTrack']);
 		
@@ -311,7 +336,7 @@ class Dashboard {
 		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
 		
 		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
 		
 		$comment['COMMENT_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
 		$comment['COMMENT_CONTENT'] = htmlspecialchars(Escape::url_base64_decode($comment['comment']));
@@ -341,7 +366,7 @@ class Dashboard {
 		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
 		
 		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
 		
 		$score['SCORE_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
 		
@@ -359,6 +384,40 @@ class Dashboard {
 		if(isset($score['ID'])) $score['scoreID'] = $score['ID'];
 			
 		return self::renderTemplate('components/score', $score);
+	}
+	
+	public static function renderSongCard($song, $person) {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		
+		$user = Library::getUserByAccountID($song['reuploadID']);
+		
+		$userAttributes = [];
+		
+		$userPerson = [
+			'accountID' => $user['extID'],
+			'userID' => $user['userID'],
+			'IP' => $user['IP'],
+		];
+		$iconKit = self::getUserIconKit($userID);
+		$userAppearance = Library::getPersonCommentAppearance($userPerson);
+		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
+		
+		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
+		
+		$downloadLink = urlencode(urldecode($song["download"]));
+		
+		$song['SONG_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
+		
+		$song['SONG_TITLE'] = sprintf(self::string('songTitle'), htmlspecialchars($song['authorName']), htmlspecialchars($song['name']));
+		$song['SONG_AUTHOR'] = htmlspecialchars($song['authorName']);
+		$song['SONG_NAME'] = htmlspecialchars($song['name']);
+		$song['SONG_URL'] = htmlspecialchars($downloadLink);
+		
+		$song['SONG_CAN_CHANGE'] = ($person['userID'] == $user['userID'] || Library::checkPermission($person, "dashboardManageSongs")) ? 'true' : 'false';
+			
+		return self::renderTemplate('components/song', $song);
 	}
 }
 ?>

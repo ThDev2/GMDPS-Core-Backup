@@ -12,9 +12,11 @@ $language['password'] = 'Password';
 $language['profile'] = 'Profile';
 $language['settings'] = 'Settings';
 $language['main'] = 'Main';
-$language['userProfile'] = '%1%s\'s profile';
+$language['userProfile'] = '%1$s\'s profile';
+$language['clanProfile'] = 'Clan %1$s';
 $language['nothingIsPlaying'] = 'Nothing is playing...';
 $language['manage'] = 'Manage';
+$language['view'] = 'View';
 
 /* Panel strings */
 $language['hidePanel'] = 'Hide panel';
@@ -30,6 +32,7 @@ $language['yourSFXsTitle'] = 'Your SFXs';
 
 $language['browse'] = 'Browse';
 $language['levelsTitle'] = 'Levels';
+$language['songsTitle'] = 'Songs';
 
 $language['messengerTitle'] = 'Messenger';
 $language['loginToAccountTitle'] = 'Login to account';
@@ -83,7 +86,7 @@ $language['loginToAccountButton'] = 'Login';
 $language['changePasswordOld'] = 'Old password';
 $language['changePasswordNew'] = 'New password';
 
-$language['levelTitle'] = '<text class="big">%1$s</text> by %2$s';
+$language['levelTitle'] = '<text class="big">%1$s</text> by %2$s'; // %1$s — level name, %2$s — username
 $language['stars'] = 'Stars';
 $language['requestedStars'] = 'Requested stars';
 $language['noDescription'] = 'No description provided';
@@ -95,8 +98,10 @@ $language['dislikes'] = 'Dislikes';
 $language['viewLevel'] = 'View level';
 $language['unknownSong'] = 'Unknown song';
 $language['uploadDate'] = 'Upload date';
+$language['noLevels'] = 'No levels!';
 
 $language['comments'] = 'Comments';
+$language['deleteComment'] = 'Delete comment';
 $language['scores'] = 'Scores';
 $language['nothingOpened'] = 'Nothing is opened!';
 $language['manageLevel'] = 'Manage level';
@@ -119,7 +124,25 @@ $language['clicks'] = 'Clicks';
 $language['time'] = 'Time';
 
 $language['writeSomething'] = 'Write something!';
-$language['bannedToast'] = 'You\'re banned: "%1$s", ban will expire %2$s';
+$language['bannedToast'] = 'You\'re banned: "%1$s", ban will expire %2$s'; // %1$s — ban reason, %2$s — in X time
+
+$language['songs'] = 'Songs';
+$language['sfxs'] = 'SFXs';
 
 $language['pageText'] = 'Page %1$s of %2$s';
+
+$language['dashboardSettingsTitle'] = 'Dashboard settings';
+
+$language['languageTitle'] = 'Language';
+$language['languageDesc'] = 'Dashboard has many languages, choose one you know most!';
+
+$language['notInClan'] = 'Not in clan';
+
+$language['songTitle'] = '<text class="big">%1$s</text> — <text class="big">%2$s</text>'; // %1$s — song author, %2$s — song title
+$language['songID'] = 'Song ID';
+$language['usageCount'] = 'Usage';
+$language['favouritesCount'] = 'Favourites';
+$language['noSongs'] = 'No songs!';
+$language['editSong'] = 'Edit song';
+$language['downloadSong'] = 'Download song';
 ?>

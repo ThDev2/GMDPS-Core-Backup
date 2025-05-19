@@ -41,7 +41,7 @@ function loadAudioPlayer() {
 			player.songTitle.innerHTML = songTitle + " •";
 			player.songID.innerHTML = songID;
 			player.songID.onclick = () => copyElementContent(songID);
-			player.downloadButton.onclick = () => player.audio.download(songAuthor, songTitle, songURL);
+			player.downloadButton.onclick = () => downloadSong(songAuthor, songTitle, songURL);
 			player.current.interact = () => player.interact(songID, songAuthor, songTitle, songURL);
 			
 			player.play();
@@ -137,16 +137,6 @@ function loadAudioPlayer() {
 		
 		return minutes + ":" + seconds;
 	}
-
-	player.audio.download = function(songAuthor, songTitle, songURL) {
-		fakeA = document.createElement("a");
-		fakeA.href = decodeURIComponent(songURL);
-		fakeA.download = songAuthor + " - " + songTitle + ".mp3";
-		fakeA.click();
-		
-		console.log(fakeA);
-	}
-
 
 	window.addEventListener("keydown", function(e) {
 		switch(e.key) {

@@ -9,7 +9,6 @@
 
 ## Installation
 
-### Wiki
 Please go to [wiki page](https://github.com/MegaSa1nt/GMDprivateServer/wiki) to find guides for installing, configuring GDPS and other useful information
 
 ## Credits
@@ -22,6 +21,7 @@ Please go to [wiki page](https://github.com/MegaSa1nt/GMDprivateServer/wiki) to 
 - Common VPNs list — https://github.com/X4BNet/lists_vpn — `config/vpns.txt`
 - Icons — https://fontawesome.com — `dashboard/incl/icons`
 - Toasts — https://github.com/apvarun/toastify-js — `dashboard/incl/toast`
+- Flags — https://www.svgrepo.com/vectors/flag — `dashboard/settings`
 
 ## License
 

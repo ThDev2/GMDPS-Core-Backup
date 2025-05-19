@@ -9,15 +9,16 @@
 		<link async rel="stylesheet" href="incl/style.css?%STYLE_TIMESTAMP%">
 		<link async rel="stylesheet" href="incl/icons/css/all.min.css">
 		<link async rel="stylesheet" href="incl/toast/toast.css">
-		<script type="text/javascript">
+		<script type="text/javascript" id="dashboardScript">
 			const dbPath = "%DATABASE_PATH%";
+			
 			const failedToLoadText = "%FAILED_TO_LOAD_TEXT%";
 			const copiedText = "%COPIED_TEXT%";
 			const nothingIsPlayingText = "%TEXT_nothingIsPlaying%";
 			
 			localStorage.language = "%LANGUAGE%";
 		</script>
-		<script async src="incl/script.js" type="text/javascript"></script>
+		<script async src="incl/script.js?%SCRIPT_TIMESTAMP%" type="text/javascript"></script>
 		<script async src="incl/player.js" type="text/javascript"></script>
 		<script async src="incl/toast/toast.js" type="text/javascript"></script>
 	</head>
@@ -62,12 +63,12 @@
 						
 						<button title="%TEXT_yourSongsTitle%" type="button" href="account/songs">
 							<i class="fa-solid fa-music"></i>
-							<text>%TEXT_yourSongsTitle% (X)</text>
+							<text>%TEXT_yourSongsTitle%</text>
 						</button>
 						
 						<button title="%TEXT_favouriteSongsTitle%" type="button" href="account/favouriteSongs">
 							<i class="fa-solid fa-heart"></i>
-							<text>%TEXT_favouriteSongsTitle% (X)</text>
+							<text>%TEXT_favouriteSongsTitle%</text>
 						</button>
 						
 						<button title="%TEXT_yourSFXsTitle%" type="button" href="account/sfxs">
@@ -87,6 +88,11 @@
 						<button title="%TEXT_levelsTitle%" type="button" href="browse/levels">
 							<i class="fa-solid fa-gamepad"></i>
 							<text>%TEXT_levelsTitle%</text>
+						</button>
+						
+						<button title="%TEXT_songsTitle%" type="button" href="browse/songs">
+							<i class="fa-solid fa-music"></i>
+							<text>%TEXT_songsTitle%</text>
 						</button>
 					</div>
 				</div>
@@ -131,7 +137,7 @@
 						
 						<button title="%TEXT_settings%" type="button" href="settings">
 							<i class="fa-solid fa-gear"></i>
-							<text>%TEXT_settings% (X)</text>
+							<text>%TEXT_settings%</text>
 						</button>
 						
 						<button title="%TEXT_logoutFromAccountTitle%" type="button" href="account/logout">
@@ -148,6 +154,7 @@
 				<h1 class="title">%GDPS_NAME%</h1>
 				<p class="description">%PAGE_TITLE%</p>
 			</div>
+			
 			%PAGE%
 		</div>
 		

@@ -3550,6 +3550,20 @@ class Library {
 		file_put_contents(__DIR__.'/../../'.$types[$type].'/standalone.dat', $gdpsEncrypted);
 	}
 	
+	public static function getSongs($filters, $order, $orderSorting, $queryJoin, $pageOffset, $noLimit = false) {
+		require __DIR__."/connection.php";
+		
+		$songs = $db->prepare("SELECT * FROM songs ".$queryJoin." WHERE (".implode(") AND (", $filters).") AND isDisabled = 0 ".($order ? "ORDER BY ".$order." ".$orderSorting : "")." ".(!$noLimit ? "LIMIT 10 OFFSET ".$pageOffset : ''));
+		$songs->execute();
+		$songs = $songs->fetchAll();
+		
+		$songsCount = $db->prepare("SELECT count(*) FROM songs ".$queryJoin." WHERE (".implode(" ) AND ( ", $filters).") AND isDisabled = 0");
+		$songsCount->execute();
+		$songsCount = $songsCount->fetchColumn();
+		
+		return ["songs" => $songs, "count" => $songsCount];
+	}
+	
 	public static function lastSongTime() {
 		require __DIR__."/connection.php";
 		
@@ -3572,12 +3586,12 @@ class Library {
 		return $lastSongTime;
 	}
 	
-	public static function getFavouriteSongs($person, $pageOffset) {
+	public static function getFavouriteSongs($person, $pageOffset, $limit = 20) {
 		require __DIR__."/connection.php";
 		
 		$accountID = $person['accountID'];
 		
-		$favouriteSongs = $db->prepare("SELECT * FROM favsongs INNER JOIN songs on favsongs.songID = songs.ID WHERE favsongs.accountID = :accountID ORDER BY favsongs.ID DESC LIMIT 20 OFFSET ".$pageOffset);
+		$favouriteSongs = $db->prepare("SELECT * FROM favsongs INNER JOIN songs on favsongs.songID = songs.ID WHERE favsongs.accountID = :accountID ORDER BY favsongs.ID DESC LIMIT ".$limit." OFFSET ".$pageOffset);
 		$favouriteSongs->execute([':accountID' => $accountID]);
 		$favouriteSongs = $favouriteSongs->fetchAll();
 		
@@ -3833,16 +3847,43 @@ class Library {
 	public static function makeClanUsername($accountID) {
 		require __DIR__."/../../config/dashboard.php";
 		
+		if(isset($GLOBALS['core_cache']['accountClanUsername'][$accountID])) return $GLOBALS['core_cache']['accountClanUsername'][$accountID];
+		
 		if(!isset($clansTagPosition)) $clansTagPosition = '[%2$s] %1$s';
 		
 		$user = self::getUserByAccountID($accountID);
 		
 		if($clansEnabled && $user['clan'] > 0 && !isset($_REQUEST['noClan'])) {
 			$clan = self::getClanInfo($user['clan'], 'tag');
-			if(!empty($clan)) return sprintf($clansTagPosition, $user['userName'], $clan);
+			
+			$clanUsername = !empty($clan) ? sprintf($clansTagPosition, $user['userName'], $clan) : $user['userName'];
+			
+			$GLOBALS['core_cache']['accountClanUsername'][$accountID] = $clanUsername;
+			
+			return $clanUsername;
 		}
 		
+		$GLOBALS['core_cache']['accountClanUsername'][$accountID] = $user['userName'];
+		
 		return $user['userName'];
+	}
+	
+	public static function getAccountClan($accountID) {
+		require __DIR__."/../../config/dashboard.php";
+		
+		if(isset($GLOBALS['core_cache']['accountClan'][$accountID])) return $GLOBALS['core_cache']['accountClan'][$accountID];
+		
+		$user = self::getUserByAccountID($accountID);
+		
+		if($clansEnabled && $user['clan'] > 0) {
+			$clan = self::getClanInfo($user['clan']);
+			
+			$GLOBALS['core_cache']['accountClan'][$accountID] = $clan;
+			
+			return $clan;
+		}
+		
+		return false;
 	}
 	
 	public static function getPersonActions($person, $filters, $limit = false) {

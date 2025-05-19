@@ -495,6 +495,9 @@ if(!$installed) {
 	$check = $db->query("SHOW COLUMNS FROM `bans` LIKE 'modReason'");
 		$exist = $check->fetchAll();
 		if(empty($exist)) $db->query("ALTER TABLE `bans` ADD `modReason` VARCHAR(2048) NOT NULL DEFAULT '' AFTER `reason`");
+	$check = $db->query("SHOW COLUMNS FROM `songs` LIKE 'favouritesCount'");
+		$exist = $check->fetchAll();
+		if(empty($exist)) $db->query("ALTER TABLE `songs` ADD `favouritesCount` INT NOT NULL DEFAULT '0' AFTER `levelsCount`");
 	
 	$lines = file(__DIR__.'/../../config/dashboard.php');
 	$first_line = $lines[2];

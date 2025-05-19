@@ -106,7 +106,7 @@ function changePage(response, href, skipCheck = false) {
 		
 		if(newPage == null) {
 			const toastBody = newPageBody.getElementById("toast");
-			if(toastBody != null) return showToast(toastBody);
+			if(toastBody != null) return r(showToast(toastBody));
 			
 			Toastify({
 				text: failedToLoadText,
@@ -121,10 +121,17 @@ function changePage(response, href, skipCheck = false) {
 
 		if(!skipCheck) history.pushState(null, null, href);
 		
+		const newPageScript = newPageBody.querySelector("#pageScript");
+		
 		document.getElementById("dashboard-page").replaceWith(newPage);
 		document.querySelector("base").replaceWith(newPageBody.querySelector("base"));
 		document.querySelector("title").replaceWith(newPageBody.querySelector("title"));
 		document.querySelector("nav").replaceWith(newPageBody.querySelector("nav"));
+		document.querySelector("#dashboardScript").replaceWith(newPageBody.querySelector("#dashboardScript"));
+		if(newPageScript != null) {
+			eval(newPageScript.textContent);
+			newPageScript.remove();
+		}
 		
 		dashboardBody = document.getElementById("dashboard-body");
 		dashboardBase = document.querySelector("base");
@@ -295,6 +302,20 @@ async function updatePage() {
 		
 		element.innerHTML = convertSeconds(timeValue);
 	});
+	
+	const checkChangeElements = document.querySelectorAll("[dashboard-check-change]");
+	checkChangeElements.forEach(element => element.onchange = () => checkChangedElements());
+	
+	const pageButtonsElement = document.querySelector("[dashboard-page-buttons]");
+	const pageButtonsDiv = document.querySelector("[dashboard-page-div]");
+	
+	if(pageButtonsElement != null && pageButtonsDiv != null) {
+		const pagePseudoElement = document.createElement("span");
+		
+		pagePseudoElement.style['min-height'] = pageButtonsElement.offsetHeight;
+		pagePseudoElement.style['max-height'] = pageButtonsElement.offsetHeight;
+		pageButtonsDiv.appendChild(pagePseudoElement);
+	}
 }
 
 function timeConverter(timestamp, textStyle = "short") {
@@ -406,4 +427,23 @@ function convertSeconds(time) { // https://stackoverflow.com/a/36981712
 	if(seconds < 10) seconds = "0" + seconds.toString();
 	
 	return minutes + ":" + seconds;
+}
+
+function checkChangedElements() { // Havent finished yet
+	const checkChangeElements = document.querySelectorAll("[dashboard-check-change]");
+	checkChangeElements.forEach(element => {
+		switch(element.type) {
+			case 'radio':
+				
+		}
+	});
+}
+
+function downloadSong(songAuthor, songTitle, songURL) {
+	fakeA = document.createElement("a");
+	fakeA.href = decodeURIComponent(songURL);
+	fakeA.download = songAuthor + " - " + songTitle + ".mp3";
+	fakeA.setAttribute("target", "_blank");
+	
+	fakeA.click();
 }

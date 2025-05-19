@@ -147,7 +147,7 @@ class Cron {
 		foreach($mapPacksCreatorPoints AS &$pack) {
 			$levels = $db->prepare("SELECT userID FROM levels WHERE levelID IN (".$pack['levels'].") AND isDeleted = 0 ".$unlistedQuery);
 			$levels->execute();
-			$levels = $levels->fetch();
+			$levels = $levels->fetchAll();
 			
 			foreach($levels AS &$level) $people[$level["userID"]] += 1;
 		}
@@ -161,13 +161,11 @@ class Cron {
 		$gauntletsCreatorPoints = $gauntletsCreatorPoints->fetchAll();
 		
 		foreach($gauntletsCreatorPoints AS &$gauntlet) {
-			for($x = 1; $x < 6; $x++) {
-				$gauntletCreatorPoints = $db->prepare("SELECT userID FROM levels WHERE levelID = :levelID AND isDeleted = 0 ".$unlistedQuery);
-				$gauntletCreatorPoints->execute([':levelID' => $gauntlet["level".$x]]);
-				$gauntletCreatorPoints = $gauntletCreatorPoints->fetch();
-				
-				if($gauntletCreatorPoints) $people[$result["userID"]] += 1;
-			}
+			$levels = $db->prepare("SELECT userID FROM levels WHERE levelID IN (".$gauntlet['level1'].",".$gauntlet['level2'].",".$gauntlet['level3'].",".$gauntlet['level4'].",".$gauntlet['level5'].") AND isDeleted = 0 ".$unlistedQuery);
+			$levels->execute();
+			$levels = $levels->fetchAll();
+			
+			foreach($levels AS &$level) $people[$level["userID"]] += 1;
 		}
 		
 		/*
@@ -319,7 +317,7 @@ class Cron {
 			Clear songs usage
 		*/
 		
-		$db->query("UPDATE songs SET levelsCount = 0");
+		$db->query("UPDATE songs SET levelsCount = 0, favouritesCount = 0");
 		$db->query("UPDATE sfxs SET levelsCount = 0");
 		
 		/*
@@ -335,6 +333,15 @@ class Cron {
 			SET levelsCount = songsUsage.songCount
 			WHERE ID = songsUsage.songID");
 		$songsUsage = $songsUsage->execute();
+		$songsFavourites = $db->prepare("UPDATE songs
+			JOIN (
+				SELECT songs.ID AS songID, favCount FROM songs
+				JOIN (SELECT count(*) AS favCount, songID FROM favsongs GROUP BY favsongs.songID) favs ON favs.songID = songs.ID
+				WHERE songs.isDisabled = 0
+			) songsFavourites
+			SET favouritesCount = songsFavourites.favCount
+			WHERE ID = songsFavourites.songID");
+		$songsFavourites = $songsFavourites->execute();
 		
 		$levels = $db->prepare("SELECT songIDs, sfxIDs FROM levels WHERE (songIDs != '' OR sfxIDs != '') AND isDeleted = 0");
 		$levels->execute();
@@ -364,7 +371,6 @@ class Cron {
 			}
 		}
 		
-		
 		/*
 			Add this info to SQL
 		*/
@@ -384,13 +390,14 @@ class Cron {
 		*/
 		
 		$updatedAudio = $db->prepare("SELECT * FROM (
-			(SELECT count(*) AS songsCount FROM songs WHERE levelsCount > 0) songs
+			(SELECT count(*) AS songsCount FROM songs WHERE levelsCount > 0) songsUsage
+			JOIN (SELECT count(*) AS favCount FROM songs WHERE favouritesCount > 0) songsFavourites
 			JOIN (SELECT count(*) AS sfxsCount FROM sfxs WHERE levelsCount > 0) sfxs
 		)");
 		$updatedAudio->execute();
 		$updatedAudio = $updatedAudio->fetch();
 		
-		Library::logAction($person, Action::CronSongsUsage, $updatedAudio['songsCount'], $updatedAudio['sfxsCount']);
+		Library::logAction($person, Action::CronSongsUsage, $updatedAudio['songsCount'], $updatedAudio['sfxsCount'], $updatedAudio['favCount']);
 		return true;
 	}
 	
