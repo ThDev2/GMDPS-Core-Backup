@@ -67,7 +67,7 @@ class CommentsError {
 	const NothingFound = "-2";
 }
 
-class Action { // Last action ID is 56
+class Action { // Last action ID is 57
 	const AccountRegister = 1;
 	const UserCreate = 51;
 	
@@ -84,6 +84,7 @@ class Action { // Last action ID is 56
 	const LevelUpload = 22;
 	const LevelChange = 23;
 	const LevelDeletion = 8;
+	const LevelMalicious = 57;
 	
 	const ProfileStatsChange = 9;
 	const ProfileSettingsChange = 27;

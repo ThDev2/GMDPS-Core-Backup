@@ -64,6 +64,8 @@ $language['errorCommentingIsDisabled'] = 'Commenting is currently disabled.';
 $language['errorLevelCommentingIsDisabled'] = 'Commenting on this level is currently disabled.';
 $language['errorListCommentingIsDisabled'] = 'Commenting on this list is currently disabled.';
 
+$language['errorSongNotFound'] = 'Song wasn\'t found!';
+
 /* Success strings */
 $language['successCopiedText'] = 'Copied text!';
 
@@ -76,6 +78,9 @@ $language['successChangedPassword'] = 'You successfully changed password! Relogi
 $language['successDeletedComment'] = 'You deleted this comment!';
 $language['successDeletedScore'] = 'You deleted this score!';
 $language['successUploadedComment'] = 'You successfully uploaded a comment!';
+
+$language['successFavouritedSong'] = 'You successfully favourited this song!';
+$language['successUnfavouritedSong'] = 'You successfully unfavourited this song!';
 
 /* Page strings */
 $language['changeUsernameOld'] = 'Old username';

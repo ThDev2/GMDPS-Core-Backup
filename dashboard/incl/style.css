@@ -297,6 +297,10 @@ body.hide .dashboard-page {
     scale: 97%;
 }
 
+.button:not(:disabled):active::after {
+    scale: 103%;
+}
+
 .dashboard-loader {
 	display: flex;
 	
@@ -1338,15 +1342,15 @@ text[title]:hover::after,
 	gap: 7px;
 }
 
-.levelStat :first-child {
+.levelStat :not(i):first-child {
 	justify-content: flex-start !important;
 }
 
-.stats.small :first-child {
+.stats.small :not(i):first-child {
 	justify-content: flex-start !important;
 }
 
-.stats.small :last-child {
+.stats.small :not(i):last-child {
 	justify-content: flex-end !important;
 }
 

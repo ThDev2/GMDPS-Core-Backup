@@ -104,7 +104,7 @@ $moonsDifference = $moons - $user["moons"];
 
 Library::logAction($person, Action::ProfileStatsChange, $starsDifference, $coinsDifference, $demonsDifference, $userCoinsDifference, $diamondsDifference, $moonsDifference);
 
-Automod::checkStatsSpeed($accountID);
+Automod::checkStatsSpeed($person);
 
 if($gameVersion < 20 && !is_numeric($accountID) && $starsDifference + $coinsDifference + $demonsDifference + $userCoinsDifference + $diamondsDifference + $moonsDifference != 0) exit(CommonError::SubmitRestoreInfo);
 

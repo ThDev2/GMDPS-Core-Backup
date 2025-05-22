@@ -64,6 +64,8 @@ $language['errorCommentingIsDisabled'] = 'Комментирование отк�
 $language['errorLevelCommentingIsDisabled'] = 'Комментирование этого уровня отключено.';
 $language['errorListCommentingIsDisabled'] = 'Комментирование этого списка отключена.';
 
+$language['errorSongNotFound'] = 'Песня не найдена!';
+
 /* Success strings */
 $language['successCopiedText'] = 'Текст скопирован!';
 
@@ -76,6 +78,9 @@ $language['successChangedPassword'] = 'Вы успешно сменили пар
 $language['successDeletedComment'] = 'Вы удалили этот комментарий!';
 $language['successDeletedScore'] = 'Вы удалили этот рекорд!';
 $language['successUploadedComment'] = 'Вы успешно выложили комментарий!';
+
+$language['successFavouritedSong'] = 'Вы успешно добавили эту песню в любимые!';
+$language['successUnfavouritedSong'] = 'Вы успешно убрали эту песню из любимых!';
 
 /* Page strings */
 $language['changeUsernameOld'] = 'Старый никнейм';

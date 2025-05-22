@@ -52,10 +52,11 @@
 				%levelsCount%
 			</text>
 			
-			<button class="button titleToRight" type="button" title="%TEXT_favouritesCount%" onclick="%LEVEL_BUTTON_ONCLICK%">
+			<button class="button titleToRight" type="button" title="%TEXT_favouritesCount%" dashboard-favourite="%ID%">
 				<text class="levelStat">
-					<i class="fa-solid fa-heart"></i>
-					%favouritesCount%
+					<i class="fa-solid fa-heart" dashboard-show="%SONG_IS_FAVOURITE%"></i>
+					<i class="fa-regular fa-heart" dashboard-hide="%SONG_IS_FAVOURITE%"></i>
+					<span>%favouritesCount%</span>
 				</text>
 			</button>
 		</div>

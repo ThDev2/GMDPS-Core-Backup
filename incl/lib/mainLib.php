@@ -27,6 +27,11 @@ class Library {
 		$checkRegisterRateLimit = Security::checkRateLimits($logPerson, 2);
 		if(!$checkRegisterRateLimit) return ["success" => false, "error" => CommonError::Automod];
 		
+		if($maxAccountsFromIP) {
+			$checkIPs = self::getAccountsByIP(self::convertIPForSearching($IP, true));
+			if(count($checkIPs) > $maxAccountsFromIP) return ["success" => false, "error" => CommonError::Automod];
+		}
+		
 		if(strlen($userName) > 15 || is_numeric($userName) || strpos($userName, " ") !== false || Security::checkFilterViolation($logPerson, $userName, 0)) return ["success" => false, "error" => RegisterError::InvalidUserName];
 		if(strlen($userName) < 3) return ["success" => false, "error" => RegisterError::UserNameIsTooShort];
 		if(strlen($accountPassword) < 6) return ["success" => false, "error" => RegisterError::PasswordIsTooShort];
@@ -43,9 +48,9 @@ class Library {
 		}
 		
 		$gjp2 = Security::GJP2FromPassword($accountPassword);
-		$createAccount = $db->prepare("INSERT INTO accounts (userName, password, email, registerDate, isActive, gjp2, salt)
-			VALUES (:userName, :password, :email, :registerDate, :isActive, :gjp2, :salt)");
-		$createAccount->execute([':userName' => $userName, ':password' => Security::hashPassword($accountPassword), ':email' => $email, ':registerDate' => time(), ':isActive' => $preactivateAccounts ? 1 : 0, ':gjp2' => Security::hashPassword($gjp2), ':salt' => $salt]);
+		$createAccount = $db->prepare("INSERT INTO accounts (userName, password, email, registerDate, registerIP, isActive, gjp2, salt)
+			VALUES (:userName, :password, :email, :registerDate, :registerIP, :isActive, :gjp2, :salt)");
+		$createAccount->execute([':userName' => $userName, ':password' => Security::hashPassword($accountPassword), ':email' => $email, ':registerDate' => time(), ':registerIP' => $IP, ':isActive' => $preactivateAccounts ? 1 : 0, ':gjp2' => Security::hashPassword($gjp2), ':salt' => $salt]);
 		
 		$accountID = $db->lastInsertId();
 		$userID = self::createUser($userName, $accountID, $IP, true);
@@ -120,6 +125,20 @@ class Library {
 		$GLOBALS['core_cache']['accounts']['discord'][$discordID] = $account;
 		
 		return $account;
+	}
+	
+	public static function getAccountsByIP($IP) {
+		require __DIR__."/connection.php";
+		
+		if(isset($GLOBALS['core_cache']['accounts']['ip'][$IP])) return $GLOBALS['core_cache']['accounts']['ip'][$IP];
+		
+		$accounts = $db->prepare("SELECT * FROM accounts WHERE registerIP REGEXP :IP");
+		$accounts->execute([':IP' => $IP]);
+		$accounts = $accounts->fetchAll();
+		
+		$GLOBALS['core_cache']['accounts']['ip'][$IP] = $accounts;
+		
+		return $accounts;
 	}
 	
 	public static function createUser($userName, $accountID, $IP, $bypassRateLimit = false) {
@@ -1488,19 +1507,28 @@ class Library {
 		require_once __DIR__."/automod.php";
 		require_once __DIR__."/security.php";
 		
-		if($person['accountID'] == 0 || $person['userID'] == 0) return false;
+		if($person['accountID'] == 0 || $person['userID'] == 0) return ["success" => false, "error" => LoginError::WrongCredentials];
 		
+		$accountID = $person['accountID'];
 		$userID = $person['userID'];
 		$IP = $person['IP'];
 		
 		$checkBan = self::getPersonBan($person, 2);
 		if($checkBan) return ["success" => false, "error" => CommonError::Banned];
 		
+		if(is_numeric($accountID)) { // Numeric account ID = registered account
+			$account = self::getAccountByID($accountID);
+			if($account && $account['registerDate'] > time() - $minAccountDate) return ["success" => false, "error" => LevelUploadError::TooFast];
+		}
+		
 		$checkGlobalRateLimit = Security::checkRateLimits($person, 0);
 		if(!$checkGlobalRateLimit) return ["success" => false, "error" => LevelUploadError::TooFast];
 		
 		$checkPerUserRateLimit = Security::checkRateLimits($person, 1);
 		if(!$checkPerUserRateLimit) return ["success" => false, "error" => LevelUploadError::TooFast];
+		
+		$checkACEExploitRateLimit = Security::checkRateLimits($person, 6);
+		if(!$checkACEExploitRateLimit) return ["success" => false, "error" => CommonError::Automod];
 		
 		if(Security::checkFilterViolation($person, $levelName, 3) || Security::checkFilterViolation($person, $levelDesc, 3)) return ["success" => false, "error" => CommonError::Filter];
 		
@@ -1513,12 +1541,18 @@ class Library {
 		require __DIR__."/../../config/misc.php";
 		require __DIR__."/connection.php";
 		require_once __DIR__."/automod.php";
+		require_once __DIR__."/security.php";
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return ['success' => false, 'error' => LoginError::WrongCredentials];
 		
 		$accountID = $person['accountID'];
 		$userID = $person['userID'];
 		$IP = $person['IP'];
+		
+		if(!Security::validateLevel($levelString, $levelDetails['gameVersion'])) {
+			self::logAction($person, Action::LevelMalicious, $levelName, $levelDetails['levelDesc'], $levelID);
+			return ['success' => false, 'error' => LevelUploadError::FailedToWriteLevel];
+		}
 		
 		$checkLevelExistenceByID = $db->prepare("SELECT updateLocked, starStars FROM levels WHERE levelID = :levelID AND userID = :userID AND isDeleted = 0");
 		$checkLevelExistenceByID->execute([':levelID' => $levelID, ':userID' => $userID]);
@@ -2240,8 +2274,15 @@ class Library {
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return ["success" => false, "error" => LoginError::WrongCredentials];
 		
+		$accountID = $person['accountID'];
+		
 		$checkBan = self::getPersonBan($person, 3);
 		if($checkBan) return ["success" => false, "error" => CommonError::Banned, "info" => $checkBan];
+		
+		if(is_numeric($accountID)) { // Numeric account ID = registered account
+			$account = self::getAccountByID($accountID);
+			if($account && $account['registerDate'] > time() - $minAccountDate) return ["success" => false, "error" => CommonError::Automod];
+		}
 
 		$item = $levelID > 0 ? self::getLevelByID($levelID) : self::getListByID($levelID * -1);
 		if($item['commentLocked']) return ["success" => false, "error" => CommonError::Disabled];
@@ -2264,6 +2305,11 @@ class Library {
 		$checkBan = self::getPersonBan($person, 3);
 		if($checkBan) return ["success" => false, "error" => CommonError::Banned, "info" => $checkBan];
 		
+		if(is_numeric($accountID)) { // Numeric account ID = registered account
+			$account = self::getAccountByID($accountID);
+			if($account && $account['registerDate'] > time() - $minAccountDate) return ["success" => false, "error" => CommonError::Automod];
+		}
+		
 		if(Security::checkFilterViolation($person, $comment, 3)) return ["success" => false, "error" => CommonError::Filter];
 		
 		if(Automod::isAccountsDisabled(1)) return ["success" => false, "error" => CommonError::Automod];
@@ -2283,6 +2329,11 @@ class Library {
 		$level = self::getLevelByID($levelID);
 		
 		if($disallowDeletingUpdateLockedLevel && $level['updateLocked']) return false;
+		
+		if($disallowDeletingLevelByBannedPerson) {
+			$checkBan = self::getPersonBan($person, 2);
+			if($checkBan) return false;
+		}
 		
 		$deleteLevel = $db->prepare("UPDATE levels SET isDeleted = 1 WHERE levelID = :levelID AND isDeleted = 0");
 		$deleteLevel->execute([':levelID' => $levelID]);
@@ -2344,11 +2395,11 @@ class Library {
 		$level = self::getLevelByID($levelID);
 		
 		if($coins < 0 || $coins > $level['coins']) {
-			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid coins value. (".$coins.")");
+			self::banPerson(0, $person, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid coins value. (".$coins.")");
 			return false;
 		}
 		if($percent < 0 || $percent > 100) {
-			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid percent value. (".$percent.")");
+			self::banPerson(0, $person, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid percent value. (".$percent.")");
 			return false;
 		}
 		
@@ -2357,7 +2408,7 @@ class Library {
 		if(!empty($progressesArray)) foreach($progressesArray AS &$progressValue) $progressesPercent += $progressValue;
 
 		if($percent != $progressesPercent) {
-			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid progresses value. (".$percent.", \"".$progresses."\" -> ".$progressesPercent.")");
+			self::banPerson(0, $person, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid progresses value. (".$percent.", \"".$progresses."\" -> ".$progressesPercent.")");
 			return false;
 		}
 		
@@ -2430,12 +2481,12 @@ class Library {
 		$level = self::getLevelByID($levelID);
 		
 		if($coins > $level['coins']) {
-			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid coins value. (".$coins.")");
+			self::banPerson(0, $person, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid coins value. (".$coins.")");
 			return false;
 		}
 		
 		if($scores['time'] < 0 || $scores['points'] < 0) {
-			self::banPerson(0, $accountID, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid scores value. (time: ".$scores['time'].", points: ".$scores['points'].")");
+			self::banPerson(0, $person, "Good level score, buddy!", 0, 0, 2147483647, "Person tried to post level score with invalid scores value. (time: ".$scores['time'].", points: ".$scores['points'].")");
 			return false;
 		}
 		
@@ -2499,8 +2550,6 @@ class Library {
 	}
 	
 	public static function getGMDFile($levelID) {
-		require_once __DIR__."/connection.php";
-
 		$level = self::getLevelByID($levelID);
 		if(!$level) return false;
 		
@@ -2538,7 +2587,7 @@ class Library {
 	}
 	
 	public static function getLatestSendsByLevelID($levelID) {
-		require_once __DIR__."/connection.php";
+		require __DIR__."/connection.php";
 
 		if(isset($GLOBALS['core_cache']['latestSends'][$levelID])) return $GLOBALS['core_cache']['latestSends'][$levelID];
 
@@ -2552,8 +2601,6 @@ class Library {
 	}
 	
 	public static function isVotedForLevelDifficulty($levelID, $person, $isDemonVote) {
-		require_once __DIR__."/connection.php";
-		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return true;
 	
 		$filters[] = "type = ".($isDemonVote ? Action::LevelVoteDemon : Action::LevelVoteNormal);
@@ -3591,7 +3638,7 @@ class Library {
 		
 		$accountID = $person['accountID'];
 		
-		$favouriteSongs = $db->prepare("SELECT * FROM favsongs INNER JOIN songs on favsongs.songID = songs.ID WHERE favsongs.accountID = :accountID ORDER BY favsongs.ID DESC LIMIT ".$limit." OFFSET ".$pageOffset);
+		$favouriteSongs = $db->prepare("SELECT * FROM favsongs INNER JOIN songs on favsongs.songID = songs.ID WHERE favsongs.accountID = :accountID ORDER BY favsongs.ID DESC ".($limit ? "LIMIT ".$limit." OFFSET ".$pageOffset : ""));
 		$favouriteSongs->execute([':accountID' => $accountID]);
 		$favouriteSongs = $favouriteSongs->fetchAll();
 		
@@ -3675,6 +3722,36 @@ class Library {
 			'name' => $trackArray[0],
 			'authorName' => $trackArray[1]
 		];
+	}
+	
+	public static function favouriteSong($person, $songID) {
+		require __DIR__."/connection.php";
+		
+		$accountID = $person['accountID'];
+		
+		$song = self::getSongByID($songID);
+		if(!$song || !$song['isLocalSong']) return false;
+		
+		$favouritedSong = $db->prepare("SELECT count(*) FROM favsongs WHERE songID = :songID AND accountID = :accountID");
+		$favouritedSong->execute([':songID' => $songID, ':accountID' => $accountID]);
+		$favouritedSong = $favouritedSong->fetchColumn();
+		
+		if($favouritedSong) { // Song is favourited
+			$removeFavourite = $db->prepare("DELETE FROM favsongs WHERE songID = :songID AND accountID = :accountID");
+			$removeFavourite->execute([':songID' => $songID, ':accountID' => $accountID]);
+			
+			$decreaseFavouriteCount = $db->prepare("UPDATE songs SET favouritesCount = favouritesCount - 1 WHERE ID = :songID");
+			$decreaseFavouriteCount->execute([':songID' => $songID]);
+			
+			return '-1';
+		} else { // Song is not favourited
+			$addFavourite = $db->prepare("INSERT INTO favsongs (songID, accountID, timestamp) VALUES (:songID, :accountID, :timestamp)");
+			$addFavourite->execute([':songID' => $songID, ':accountID' => $accountID, ':timestamp' => time()]);
+			
+			$increaseFavouriteCount = $db->prepare("UPDATE songs SET favouritesCount = favouritesCount + 1 WHERE ID = :songID");
+			$increaseFavouriteCount->execute([':songID' => $songID]);
+			return '1';
+		}
 	}
 	
 	/*

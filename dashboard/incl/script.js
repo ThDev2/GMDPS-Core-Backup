@@ -57,20 +57,11 @@ async function getPage(href, skipCheck = false) {
 	return true;
 }
 
-async function postPage(href, form) {
-	const formElement = document.querySelector("form[name=" + form + "]");
-	const formData = new FormData(formElement);
-	const formEntries = formData.entries();
-	
-	for(const entry of formEntries) {
-		const isOptional = formElement.querySelector("input[dashboard-not-required][name=" + entry[0] + "]");
-		if(!entry[1].trim().length && isOptional == null) {
-			formElement.classList.add("empty-fields");
-			return false;
-		}
-	}
+async function postPage(href, form, showLoadingCircle = true) {
+	const formData = await getForm(form);
+	if(!formData) return false;
 
-	dashboardLoader.classList.remove("hide");
+	if(showLoadingCircle) dashboardLoader.classList.remove("hide");
 	
 	switch(true) {
 		case href == '@':
@@ -95,7 +86,7 @@ async function postPage(href, form) {
 	
 	await changePage(response, href);
 	
-	dashboardLoader.classList.add("hide");
+	if(showLoadingCircle) dashboardLoader.classList.add("hide");
 }
 
 function changePage(response, href, skipCheck = false) {
@@ -316,6 +307,13 @@ async function updatePage() {
 		pagePseudoElement.style['max-height'] = pageButtonsElement.offsetHeight;
 		pageButtonsDiv.appendChild(pagePseudoElement);
 	}
+	
+	const favouriteButtonsElements = document.querySelectorAll("[dashboard-favourite]");
+	favouriteButtonsElements.forEach(async(element) => {
+		const songID = element.getAttribute("dashboard-favourite");
+		
+		element.onclick = () => favouriteSong(songID);
+	});
 }
 
 function timeConverter(timestamp, textStyle = "short") {
@@ -446,4 +444,53 @@ function downloadSong(songAuthor, songTitle, songURL) {
 	fakeA.setAttribute("target", "_blank");
 	
 	fakeA.click();
+}
+
+async function favouriteSong(songID) {
+	const favouriteButtonsElement = document.querySelector(`[dashboard-favourite="${songID}"]`);
+	if(favouriteButtonsElement == null) return false;
+	
+	favouriteButtonsElement.style.opacity = "0.9";
+	favouriteButtonsElement.disabled = true;
+	
+	const favouriteButtonIcon = favouriteButtonsElement.querySelector("i");
+	const favouriteButtonText = favouriteButtonsElement.querySelector("span");
+	
+	if(favouriteButtonIcon.classList.contains("fa-regular")) {
+		favouriteButtonIcon.classList.remove("fa-regular");
+		favouriteButtonIcon.classList.add("fa-solid");
+		
+		favouriteButtonText.innerHTML++;
+	} else {
+		favouriteButtonIcon.classList.remove("fa-solid");
+		favouriteButtonIcon.classList.add("fa-regular");
+		
+		favouriteButtonText.innerHTML--;
+	}
+	
+	const formData = new FormData();
+	formData.set("songID", songID);
+	
+	await postPage('manage/favouriteSong', formData, false);
+	
+	favouriteButtonsElement.style.opacity = "1";
+	favouriteButtonsElement.disabled = false;
+}
+
+async function getForm(form) {
+	if(typeof form == 'object') return form;
+	
+	const formElement = document.querySelector("form[name=" + form + "]");
+	const formData = new FormData(formElement);
+	const formEntries = formData.entries();
+	
+	for(const entry of formEntries) {
+		const isOptional = formElement.querySelector("input[dashboard-not-required][name=" + entry[0] + "]");
+		if(!entry[1].trim().length && isOptional == null) {
+			formElement.classList.add("empty-fields");
+			return false;
+		}
+	}
+	
+	return formData;
 }

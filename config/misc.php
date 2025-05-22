@@ -257,4 +257,14 @@ $showCreatorRating = true;
 	False — Allow deleting if level is update locked
 */
 $disallowDeletingUpdateLockedLevel = true;
+
+/*
+	Banning person from uploading levels also disallows deleting level
+	
+	Should persons banned from uploading levels be not able to delete levels too?
+	
+	True — Disallow deleting if person is banned from uploading levels
+	False — Allow deleting if person is banned from uploading levels
+*/
+$disallowDeletingLevelByBannedPerson = true;
 ?>

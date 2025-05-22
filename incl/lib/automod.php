@@ -672,10 +672,18 @@ class Automod {
 	public static function checkAccountPostsSpamming($userID) {
 		require __DIR__."/../../config/security.php";
 		require __DIR__."/connection.php";
+		require_once __DIR__."/ip.php";
 		require_once __DIR__."/mainLib.php";
 		require_once __DIR__."/exploitPatch.php";
 		
 		$returnValue = true;
+		$IP = IP::getIP();
+		
+		$banPerson = [
+			'accountID' => 0,
+			'userID' => $userID,
+			'IP' => $IP,
+		];
 		
 		$comments = $db->prepare('SELECT comment, userID FROM acccomments WHERE timestamp > :time ORDER BY timestamp DESC');
 		$comments->execute([':time' => time() - $commentsCheckPeriod]);
@@ -746,7 +754,7 @@ class Automod {
 			if(!$isWarned) {
 				self::logAutomodActions(13, $similarCommentsCount, $similarity, $commentsCount, $userID);
 				
-				if($commentsSpamUploadDisable) Library::banPerson(0, $userID, "No spamming!", 3, 1, (time() + $commentsSpamUploadDisable), "Person tried to spam comments. (".$similarity." > ".$commentsCount." / 3)");
+				if($commentsSpamUploadDisable) Library::banPerson(0, $banPerson, "No spamming!", 3, 1, (time() + $commentsSpamUploadDisable), "Person tried to spam comments. (".$similarity." > ".$commentsCount." / 3)");
 				
 				//$gs->sendAccountPostsSpammerWarningWebhook($similarCommentsCount, $userID);
 			}
@@ -861,10 +869,12 @@ class Automod {
 			true — everything is good, no cheating
 			false — cheating detected!
 	*/
-	public static function checkStatsSpeed($accountID) {
+	public static function checkStatsSpeed($person) {
 		require __DIR__."/../../config/security.php";
 		require __DIR__."/connection.php";
 		require_once __DIR__."/mainLib.php";
+		
+		$accountID = $person['accountID'];
 		
 		$searchFilters = ['type = '.Action::ProfileStatsChange, 'account = '.$accountID, 'timestamp >= '.(time() - $statsTimeCheck)];
 		$statChanges = Library::getActions($searchFilters);
@@ -908,7 +918,7 @@ class Automod {
 		if($starsRatio > $maxStarsPossible || $moonsRatio > $maxMoonsPossible || $userCoinsRatio > $maxUserCoinsPossible || $demonsRatio > $maxDemonsPossible) {
 			$maxText = 'Max in '.$statsTimeCheck.' seconds: ⭐'.$maxStarsPossible.' • 🌙'.$maxMoonsPossible.' • 🪙'.$maxUserCoinsPossible.' • 👿'.$maxDemonsPossible.' | User stats ratio: ⭐'.$starsRatio.' • 🌙'.$moonsRatio.' • 🪙'.$userCoinsRatio.' • 👿'.$demonsRatio;
 			
-			Library::banPerson(0, $accountID, "You're too good at gaining stats.", 0, 0, 2147483647, "Person gained too much stats in short time. (".$maxText.")");
+			Library::banPerson(0, $person, "You're too good at gaining stats.", 0, 0, 2147483647, "Person gained too much stats in short time. (".$maxText.")");
 			return false;
 		}
 		

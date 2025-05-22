@@ -213,23 +213,30 @@ if(!$installed) {
 			$check = $db->query("SHOW COLUMNS FROM `users` LIKE 'banReason'");
 			$banReason = $check->fetchAll();
 			// Absolutely cursed, but idc, all for full compatibility
-			$allBans = $db->prepare('SELECT userID, isBanned'.(!empty($creatorBanned) ? ', isCreatorBanned' : '').(!empty($uploadBanned) ? ', isUploadBanned' : '').(!empty($commentBanned) ? ', isCommentBanned' : '').(!empty($banReason) ? ', banReason' : '').' FROM users WHERE isBanned > 0'.(!empty($creatorBanned) ? ' OR isCreatorBanned > 0' : '').(!empty($uploadBanned) ? ' OR isUploadBanned > 0' : '').(!empty($commentBanned) ? ' OR isCommentBanned > 0' : ''));
+			$allBans = $db->prepare('SELECT extID, userID, IP, isBanned'.(!empty($creatorBanned) ? ', isCreatorBanned' : '').(!empty($uploadBanned) ? ', isUploadBanned' : '').(!empty($commentBanned) ? ', isCommentBanned' : '').(!empty($banReason) ? ', banReason' : '').' FROM users WHERE isBanned > 0'.(!empty($creatorBanned) ? ' OR isCreatorBanned > 0' : '').(!empty($uploadBanned) ? ' OR isUploadBanned > 0' : '').(!empty($commentBanned) ? ' OR isCommentBanned > 0' : ''));
 			$allBans->execute();
 			$allBans = $allBans->fetchAll();
 			foreach($allBans AS &$ban) {
 				if($ban['banReason'] == 'none' || $ban['banReason'] == 'banned') $ban['banReason'] = ''; 
+				
+				$banPerson = [
+					'accountID' => $ban['extID'],
+					'userID' => $ban['userID'],
+					'IP' => $ban['IP'],
+				];
+				
 				switch(true) {
 					case $ban['isBanned'] > 0:
-						Library::banPerson(0, $ban['userID'], $ban['banReason'], 0, 1, 2147483647);
+						Library::banPerson(0, $banPerson, $ban['banReason'], 0, 1, 2147483647);
 						break;
 					case $ban['isCreatorBanned'] > 0:
-						Library::banPerson(0, $ban['userID'], $ban['banReason'], 1, 1, 2147483647);
+						Library::banPerson(0, $banPerson, $ban['banReason'], 1, 1, 2147483647);
 						break;
 					case $ban['isUploadBanned'] > 0:
-						Library::banPerson(0, $ban['userID'], $ban['banReason'], 2, 1, 2147483647);
+						Library::banPerson(0, $banPerson, $ban['banReason'], 2, 1, 2147483647);
 						break;
 					case $ban['isCommentBanned'] > 0:
-						Library::banPerson(0, $ban['userID'], $ban['banReason'], 3, 1, 2147483647);
+						Library::banPerson(0, $banPerson, $ban['banReason'], 3, 1, 2147483647);
 						break;
 				}
 			}
@@ -498,6 +505,49 @@ if(!$installed) {
 	$check = $db->query("SHOW COLUMNS FROM `songs` LIKE 'favouritesCount'");
 		$exist = $check->fetchAll();
 		if(empty($exist)) $db->query("ALTER TABLE `songs` ADD `favouritesCount` INT NOT NULL DEFAULT '0' AFTER `levelsCount`");
+	$check = $db->query("SHOW COLUMNS FROM `accounts` LIKE 'registerIP'");
+		$exist = $check->fetchAll();
+		if(empty($exist)) {
+			$db->query("ALTER TABLE `accounts` ADD `registerIP` VARCHAR(255) NOT NULL DEFAULT '' AFTER `registerDate`");
+			
+			// Filling IPs from actions table
+			$getIPs = $db->prepare("SELECT account, IP FROM actions WHERE type = 1");
+			$getIPs->execute();
+			$getIPs = $getIPs->fetchAll();
+			
+			foreach($getIPs AS &$account) {
+				$fillIP = $db->prepare("UPDATE accounts SET registerIP = :registerIP WHERE accountID = :accountID");
+				$fillIP->execute([':registerIP' => $account['IP'], ':accountID' => $account['account']]);
+			}
+			
+			// Fill IPs of accounts before using newer version of my core
+			$getAccounts = $db->prepare("SELECT accountID FROM accounts WHERE registerIP = ''");
+			$getAccounts->execute();
+			$getAccounts = $getAccounts->fetchAll();
+			if($getAccounts) {
+				foreach($getAccounts AS &$account) {
+					$getIP = $db->prepare("SELECT IP FROM users WHERE extID = :accountID");
+					$getIP->execute([':accountID' => $account['accountID']]);
+					$getIP = $getIP->fetchColumn();
+					
+					$fillIP = $db->prepare("UPDATE accounts SET registerIP = :registerIP WHERE accountID = :accountID");
+					$fillIP->execute([':registerIP' => $getIP, ':accountID' => $account['accountID']]);
+				}
+			}
+		}
+	
+	$check = $db->query("SHOW COLUMNS FROM `accounts` LIKE 'mailExpires'");
+		$exist = $check->fetchAll();
+		if(empty($exist)) {
+			$db->query("ALTER TABLE `accounts` ADD `mailExpires` INT NOT NULL DEFAULT '0' AFTER `mail`");
+			$db->query("UPDATE accounts SET mailExpires = ".(time() + 3600));
+		}
+	$check = $db->query("SHOW COLUMNS FROM `accounts` LIKE 'passCodeExpires'");
+		$exist = $check->fetchAll();
+		if(empty($exist)) {
+			$db->query("ALTER TABLE `accounts` ADD `passCodeExpires` INT NOT NULL DEFAULT '0' AFTER `passCode`");
+			$db->query("UPDATE accounts SET passCodeExpires = ".(time() + 3600));
+		}
 	
 	$lines = file(__DIR__.'/../../config/dashboard.php');
 	$first_line = $lines[2];

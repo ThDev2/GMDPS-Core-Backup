@@ -410,7 +410,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($globalLevelsUploadDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "You exceeded allowed rate limit for uploading level.", 2, 2, (time() + $rateLimitBanTime), "Person tried to upload too many levels. (".count($isRateLimited)." > ".$globalLevelsUploadDelay." * ".$rateLimitBanMultiplier.", global)");
+						Library::banPerson(0, $person, "You exceeded allowed rate limit for uploading level.", 2, 2, (time() + $rateLimitBanTime), "Person tried to upload too many levels. (".count($isRateLimited)." > ".$globalLevelsUploadDelay." * ".$rateLimitBanMultiplier.", global)");
 					}
 					
 					return false;
@@ -420,8 +420,8 @@ class Security {
 			case 1:
 				if(!$perUserLevelsUploadDelay) return true;
 			
-				$lastUploadedLevelByUser = $db->prepare('SELECT count(*) FROM levels WHERE uploadDate >= :time AND isDeleted = 0 AND (userID = :userID OR IP = :IP)');
-				$lastUploadedLevelByUser->execute([':time' => time() - $perUserLevelsUploadDelay, ':userID' => $userID, ':IP' => $IP]);
+				$lastUploadedLevelByUser = $db->prepare('SELECT count(*) FROM levels WHERE uploadDate >= :time AND isDeleted = 0 AND (userID = :userID OR IP REGEXP :IP)');
+				$lastUploadedLevelByUser->execute([':time' => time() - $perUserLevelsUploadDelay, ':userID' => $userID, ':IP' => Library::convertIPForSearching($IP, true)]);
 				$lastUploadedLevelByUser = $lastUploadedLevelByUser->fetchColumn();
 				
 				if($lastUploadedLevelByUser) {
@@ -431,7 +431,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($perUserLevelsUploadDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "You exceeded allowed rate limit for uploading levels.", 2, 2, (time() + $rateLimitBanTime), "Person tried to upload too many levels. (".count($isRateLimited)." > ".$perUserLevelsUploadDelay." * ".$rateLimitBanMultiplier.", per user)");
+						Library::banPerson(0, $person, "You exceeded allowed rate limit for uploading levels.", 2, 2, (time() + $rateLimitBanTime), "Person tried to upload too many levels. (".count($isRateLimited)." > ".$perUserLevelsUploadDelay." * ".$rateLimitBanMultiplier.", per user)");
 					}
 					
 					return false;
@@ -452,7 +452,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($accountsRegisterDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "You exceeded allowed rate limit for registering accounts.", 4, 2, (time() + $rateLimitBanTime), "Person tried to register too many accounts. (".count($isRateLimited)." > ".$accountsRegisterDelay." * ".$rateLimitBanMultiplier.")");
+						Library::banPerson(0, $person, "You exceeded allowed rate limit for registering accounts.", 4, 2, (time() + $rateLimitBanTime), "Person tried to register too many accounts. (".count($isRateLimited)." > ".$accountsRegisterDelay." * ".$rateLimitBanMultiplier.")");
 					}
 					
 					return false;
@@ -472,7 +472,7 @@ class Security {
 					$isRateLimited = Library::getPersonActions($person, $searchFilters);
 					
 					if(count($isRateLimited) > ($usersCreateDelay * $rateLimitBanMultiplier)) {
-						Library::banPerson(0, $IP, "You exceeded allowed rate limit for creating users.", 4, 2, (time() + $rateLimitBanTime), "Person tried to create too many users. (".count($isRateLimited)." > ".$usersCreateDelay." * ".$rateLimitBanMultiplier.")");
+						Library::banPerson(0, $person, "You exceeded allowed rate limit for creating users.", 4, 2, (time() + $rateLimitBanTime), "Person tried to create too many users. (".count($isRateLimited)." > ".$usersCreateDelay." * ".$rateLimitBanMultiplier.")");
 					}
 					
 					return false;
@@ -480,21 +480,37 @@ class Security {
 				
 				return true;
 			case 4:
+				if(!$filterRateLimitBan) return true;
+				
 				$searchFilters = ["type = ".Action::FilterRateLimit, 'timestamp >= '.(time() - $filterTimeCheck)];
 				$isRateLimited = Library::getPersonActions($person, $searchFilters);
 				
 				if(count($isRateLimited) > $filterRateLimitBan) {
-					Library::banPerson(0, $IP, "You swore too much.", 3, 2, (time() + $rateLimitBanTime), "Person triggered filters too much. (".count($isRateLimited)." > ".$filterRateLimitBan.")");
+					Library::banPerson(0, $person, "You swore too much.", 3, 2, (time() + $rateLimitBanTime), "Person triggered filters too much. (".count($isRateLimited)." > ".$filterRateLimitBan.")");
 					return false;
 				}
 				
 				return true;
 			case 5:
+				if(!$maxLoginTries) return true;
+				
 				$searchFilters = ['type = '.Action::FailedLogin, 'timestamp >= '.time() - 3600];
 				$isRateLimited = Library::getPersonActions($person, $searchFilters);
 				
-				if(count($isRateLimited) > ($maxLoginTries * $rateLimitBanMultiplier)) {
-					Library::banPerson(0, $IP, "You exceeded allowed rate limit for logging in.", 4, 2, (time() + $rateLimitBanTime), "Person failed to login too much. (".count($isRateLimited)." > ".$maxLoginTries." * ".$rateLimitBanMultiplier.")");
+				if(count($isRateLimited) > $maxLoginTries) {
+					Library::banPerson(0, $person, "You exceeded allowed rate limit for logging in.", 4, 2, (time() + $rateLimitBanTime), "Person failed to login too much. (".count($isRateLimited)." > ".$maxLoginTries.")");
+					return false;
+				}
+				
+				return true;
+			case 6:
+				if(!$maxACEExploitTries) return true;
+				
+				$searchFilters = ['type = '.Action::LevelMalicious, 'timestamp >= '.time() - $ACEExploitTimeCheck];
+				$isRateLimited = Library::getPersonActions($person, $searchFilters);
+				
+				if(count($isRateLimited) > $maxACEExploitTries) {
+					Library::banPerson(0, $person, "Good levels, buddy!", 4, 2, (time() + $rateLimitBanTime), "Person tried to post malicious levels too much. (".count($isRateLimited)." > ".$maxACEExploitTries.")");
 					return false;
 				}
 				
@@ -598,6 +614,69 @@ class Security {
 		$saveData = Escape::url_base64_encode($saveData);
 		
 		return $saveData;
+	}
+	
+	public static function mapGDString($list, $separator) {
+        $array = [];
+		
+        $bits = explode($separator, $list);
+        for($i = 1; $i < count($bits); $i += 2) {
+            $array[$bits[$i - 1]] = $bits[$i];
+        }
+        
+		return $array;
+    }
+	
+	public static function unmapGDString($dict, $separator) {
+        $string = '';
+		
+        foreach($dict as $key => $value) {
+            $string[] .= "${separator}${key}${separator}${value}";
+        }
+		
+        return $string;
+    }
+	
+	public static function validateLevel($levelString, $version) { // Was made by 0x1DEA: https://github.com/Cvolton/GMDprivateServer/pull/1002
+		require __DIR__.'/../../config/security.php';
+		require_once __DIR__.'/exploitPatch.php';
+		
+		try {
+			$data = $levelString;
+
+			// Decode (strict mode) if falsy then
+			$decoded = Escape::url_base64_decode($levelString);
+			if($decoded !== false) $data = $decoded;
+
+			// Check for zlib magic
+			$magic = bin2hex(substr($data, 0, 3));
+			if($magic === '1f8b08' || substr($magic, 0, 2) === '78') {
+				$data = zlib_decode($data, $maxUncompressedLevelSize);
+				if(!$data) return false;
+			} else {
+				if(strlen($data) > $maxUncompressedLevelSize) return false;
+			}
+			
+			if(!$enableACEExploitCheck) return true;
+			
+			// Check if result invalid (any character outside ascii range). Better heuristic for detecting junk?
+			if(preg_match('/[^\x20-\x7e]/', $data)) return false;
+			
+			$objs = explode(';', $data);
+			// Skip level header
+			for($i = 1; $i < count($objs); $i++) {
+				$obj = self::mapGDString($objs[$i], ',');
+				// Clamp groups based on version
+				if(array_key_exists(80, $obj)) {
+					$id = (int)$obj[80];
+					if($id > ($version > 21 ? 9999 : 1099) || $id < 0) return false;
+				}
+			}
+		} catch (Exception $e) {
+			return false;
+		}
+
+		return true;
 	}
 }
 ?>

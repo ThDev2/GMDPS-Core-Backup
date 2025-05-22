@@ -189,12 +189,19 @@ if($_GET['id']) {
 					break;
 				}
 				
+				$favouriteSongs = [];
+				if($person['success']) {
+					$favouriteSongsArray = Library::getFavouriteSongs($person, 0, false);
+					
+					foreach($favouriteSongsArray['songs'] AS &$favouriteSong) $favouriteSongs[] = $favouriteSong["songID"];
+				}
+				
 				$filters = ["songs.ID IN (".Escape::multiple_ids($level['LEVEL_SONG_IDS']).")"];
 				$additionalPage = '';
 
 				$songs = Library::getSongs($filters, '', '', '', $pageOffset, false);
 
-				foreach($songs['songs'] AS &$song) $additionalPage .= Dashboard::renderSongCard($song, $person);
+				foreach($songs['songs'] AS &$song) $additionalPage .= Dashboard::renderSongCard($song, $person, $favouriteSongs);
 
 				$pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
 				$pageCount = floor($songs['count'] / 10) + 1;
@@ -253,7 +260,7 @@ $dataArray = [
 	'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',
 	
 	'FIRST_PAGE_BUTTON' => "getPage('@page=REMOVE_QUERY')",
-	'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "@page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
+	'PREVIOUS_PAGE_BUTTON' => "getPage('@".(($pageNumber - 1) > 1 ? "page=".($pageNumber - 1) : 'page=REMOVE_QUERY')."')",
 	'NEXT_PAGE_BUTTON' => "getPage('@page=".($pageNumber + 1)."')",
 	'LAST_PAGE_BUTTON' => "getPage('@page=".$pageCount."')"
 ];

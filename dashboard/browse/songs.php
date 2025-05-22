@@ -6,8 +6,14 @@ require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 $sec = new Security();
 
 $person = Dashboard::loginDashboardUser();
-if(!$person['success']) exit(Dashboard::renderErrorPage(Dashboard::string("songsTitle"), Dashboard::string("errorLoginRequired")));
 $accountID = $person['accountID'];
+
+$favouriteSongs = [];
+if($person['success']) {
+	$favouriteSongsArray = Library::getFavouriteSongs($person, 0, false);
+
+	foreach($favouriteSongsArray['songs'] AS &$favouriteSong) $favouriteSongs[] = $favouriteSong["songID"];
+}
 
 $order = "reuploadTime";
 $orderSorting = "DESC";
@@ -17,7 +23,7 @@ $page = '';
 
 $songs = Library::getSongs($filters, $order, $orderSorting, '', $pageOffset, false);
 
-foreach($songs['songs'] AS &$song) $page .= Dashboard::renderSongCard($song, $person);
+foreach($songs['songs'] AS &$song) $page .= Dashboard::renderSongCard($song, $person, $favouriteSongs);
 
 $pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
 $pageCount = floor($songs['count'] / 10) + 1;

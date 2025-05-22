@@ -151,9 +151,8 @@ class Dashboard {
 		if(isset($GLOBALS['core_cache']['dashboard']['language'])) return $GLOBALS['core_cache']['dashboard']['language'];
 		
 		if(!$_COOKIE['lang']) {
-			//if(file_exists(__DIR__.'/langs/'.strtoupper(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2))).'.php') $_COOKIE['lang'] = strtoupper(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2));
-			//else $_COOKIE['lang'] = 'EN';
-			$_COOKIE['lang'] = 'EN';
+			if(file_exists(__DIR__.'/langs/'.strtoupper(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2))).'.php') $_COOKIE['lang'] = strtoupper(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2));
+			else $_COOKIE['lang'] = 'EN';
 				
 			setcookie("lang", $_COOKIE['lang'], 2147483647, "/");
 		}
@@ -386,7 +385,7 @@ class Dashboard {
 		return self::renderTemplate('components/score', $score);
 	}
 	
-	public static function renderSongCard($song, $person) {
+	public static function renderSongCard($song, $person, $favouriteSongs) {
 		global $dbPath;
 		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
 		
@@ -416,7 +415,9 @@ class Dashboard {
 		$song['SONG_URL'] = htmlspecialchars($downloadLink);
 		
 		$song['SONG_CAN_CHANGE'] = ($person['userID'] == $user['userID'] || Library::checkPermission($person, "dashboardManageSongs")) ? 'true' : 'false';
-			
+		
+		$song['SONG_IS_FAVOURITE'] = (is_array($favouriteSongs) && in_array($song['ID'], $favouriteSongs)) || (!is_array($favouriteSongs) && $favouriteSongs) ? 'true' : 'false';
+		
 		return self::renderTemplate('components/song', $song);
 	}
 }

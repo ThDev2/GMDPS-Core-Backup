@@ -59,8 +59,14 @@ class Cron {
 		foreach($getCheaters AS &$ban) {
 			$getUser = Library::getUserByID($ban['userID']);
 			$maxText = 'MAX: ⭐'.$stars.' • 🌙'.$moons.' • 👿'.$demons.' • 🪙'.$coins.' | USER: ⭐'.$getUser['stars'].' • 🌙'.$getUser['moons'].' • 👿'.$getUser['demons'].' • 🪙'.$getUser['userCoins'];
+		
+			$banPerson = [
+				'accountID' => $getUser['extID'],
+				'userID' => $ban['userID'],
+				'IP' => $getUser['IP'],
+			];
 			
-			Library::banPerson(0, $ban['userID'], "You're too good at gaining stats.", 0, 1, 2147483647, $maxText);
+			Library::banPerson(0, $banPerson, "You're too good at gaining stats.", 0, 1, 2147483647, $maxText);
 		}
 		
 		Library::logAction($person, Action::CronAutoban, $stars, $coins, $demons, $moons, count($getCheaters));

@@ -76,12 +76,23 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 	$rateLimitBanTime — for how many seconds IP should be banned
 	
 	$maxLoginTries — maximum amount of login tries per hour
+	$maxAccountsFromIP — maximum amount of accounts can be created from one IP
+		0 — turned off
+	$minAccountDate — minimum amount of seconds from register date required for account to be able to post levels, comments, etc
+		0 — turned off
 	
 	$statsTimeCheck — time in seconds for checking stats speed
 	$maxStarsPossible — maximum amount of stars user can gain before they get banned
 	$maxMoonsPossible — maximum amount of moons user can gain before they get banned
 	$maxUserCoinsPossible — maximum amount of user coins user can gain before they get banned
 	$maxDemonsPossible — maximum amount of demons user can gain before they get banned
+
+	$enableACEExploitCheck — enable level ACE exploit check, can be useful for 2.1 GDPSs
+	$maxUncompressedLevelSize — maximum level size in bytes, that can be uploaded to server
+		To convert megabytes to bytes, use MB * 1024 * 1024
+	$maxACEExploitTries — maximum amount of tries to upload malicious level before banning IP
+		0 — turned off
+	$ACEExploitTimeCheck — if person tried to upload malicious level, warnings of how many seconds old should be checked
 
 	
 	-- ANTI-SPAM --
@@ -116,7 +127,9 @@ $vpns['vpn'] = 'https://raw.githubusercontent.com/X4BNet/lists_vpn/main/output/v
 		0 — turned off
 	
 	$filterTimeCheck — if person tried to post filtered word, warnings of how many seconds old should be checked
-	$filterRateLimitBan — how many filter warnings will get person banned from commenting?
+	$filterRateLimitBan — how many filter warnings will get person banned from commenting
+		0 — turned off
+	
 		
 	-- CONTENT FILTERS -- 
 	
@@ -157,12 +170,19 @@ $rateLimitBanMultiplier = 2;
 $rateLimitBanTime = 3600;
 
 $maxLoginTries = 4;
+$maxAccountsFromIP = 2;
+$minAccountDate = 30;
 
 $statsTimeCheck = 600;
 $maxStarsPossible = 150;
 $maxMoonsPossible = 150;
 $maxUserCoinsPossible = 80;
 $maxDemonsPossible = 30;
+
+$enableACEExploitCheck = true;
+$maxUncompressedLevelSize = 104857600;
+$maxACEExploitTries = 2;
+$ACEExploitTimeCheck = 3600;
 
 $warningsPeriod = 302400;
 

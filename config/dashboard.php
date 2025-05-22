@@ -5,6 +5,7 @@ $installed = true; // Like i said, it changed!
 	Main dashboard settings
 	
 	$gdps — GDPS name, shows in title and various dashboard and Discord webhooks
+	
 	$lrEnabled — are level reupload tools enabled or not
 		True — level reupload tools are enabled
 		False — level reupload tools are disabled
@@ -23,39 +24,50 @@ $installed = true; // Like i said, it changed!
 	$convertEnabled — is converting new SFXs enabled
 		True — converting new SFXs is enabled
 		False — converting new SFXs is disabled
+		
 	$songSize — maximum song size user can upload via file
 	$sfxSize — maximum SFX size user can upload via file
+	
 	$timeType — how time shows in-game
-		0 — default time, as in Cvolton's core (06/02/2024 22.18)
-		1 — default dashboard time (depends on time since, today — 22;18, in this year — 02.06, older — 02.06.2024)
+		0 — time, as in Cvolton's core (06/02/2024 22.18)
+		1 — default dashboard time (depends on time since, today — 22;18, this year — 02.06, older — 02.06.2024)
 		2 — time as in real Geometry Dash (2 weeks ago)
+		
 	$dashboardIcon — icon in dashboard's navbar, can be link
 	$dashboardFavicon — icon in browser's title, can be link
+	
 	$preenableSongs — should core autoenable songs when uploading new one?
 		True — enable new songs
 		False — disable new songs (requires moderator input to enable)
 	$preenableSongs — should core autoenable SFXs when uploading new one?
 		True — enable new SFXs
 		False — disable new SFXs (requires moderator input to enable)
+		
 	$clansTagPosition — how clan tag should display in-game
 		%1$s — username
 		%2$s — clan tag
 		%1$s [%2$s] -> USERNAME [TAG], for example: Sa1ntSosetHui [GCS]
 */
 $gdps = "GDPS";
+
 $lrEnabled = true;
 $msgEnabled = true;
 $clansEnabled = true;
 $songEnabled = 12;
 $sfxEnabled = true;
 $convertEnabled = true;
+
 $songSize = 8;
 $sfxSize = 4.5;
+
 $timeType = 1;
+
 $dashboardIcon = '/dashboard/icon.png';
 $dashboardFavicon = '/dashboard/icon.png';
+
 $preenableSongs = true;
 $preenableSFXs = true;
+
 $clansTagPosition = '%1$s [%2$s]';
 
 /*
@@ -63,8 +75,8 @@ $clansTagPosition = '%1$s [%2$s]';
 	
 	$downloadLinks[] = ['download name', 'download link'];
 */
-$downloadLinks[] = ['Windows', 'download/'.$gdps.'.zip'];
-$downloadLinks[] = ['Android', 'download/'.$gdps.'.apk'];
+//$downloadLinks[] = ['Windows', 'download/'.$gdps.'.zip'];
+//$downloadLinks[] = ['Android', 'download/'.$gdps.'.apk'];
 // $downloadLinks[] = ['Mac OS', 'download/'.$gdps.'.dmg'];
 // $downloadLinks[] = ['iOS', 'download/'.$gdps.'.ipa'];
 
@@ -83,7 +95,6 @@ $downloadLinks[] = ['Android', 'download/'.$gdps.'.apk'];
 */
 $thirdParty[] = ['https://yt3.googleusercontent.com/EZ149IVvU5JX2Fi6yH7R95NQmKdNsea_gggEvJXA0MIZQ397E_WHLLNCgBjL45npnMZNUkpq=s88-c-k-c0x00ffffff-no-rj', 'RobTop', 'https://store.steampowered.com/app/322170/Geometry_Dash/', 'For Geometry Dash'];
 $thirdParty[] = ['https://avatars.githubusercontent.com/u/5721187', 'Cvolton', 'https://github.com/Cvolton', 'For GDPS code'];
-$thirdParty[] = ['https://avatars.githubusercontent.com/u/52624723', 'Foxodever', 'https://github.com/foxodever/BetterCvoltonGDPS/blob/main/tools/songs/upload.php', 'For file upload script'];
 
 /*
 	Custom music and SFX libraries
@@ -131,14 +142,13 @@ $disallowReuploadingNotUserLevels = false;
 	Cobalt API
 	
 	Use Cobalt API to be able to reupload songs with YouTube links and etc.
-	Requires file upload to be enabled!
+	Requires file upload to be enabled
 	
 	$useCobalt — Should server use Cobalt to reupload songs by links
 		True — use Cobalt
-		False — don't use Cobalt
+		False — don't use Cobalt
 
-	$cobaltAPI[] — links to Cobalt's APIs
-		Server will randomly pick one of Cobalt APIs when reuploading song
+	$cobaltAPI — link to Cobalt's APIs
 		
 	Turnstile-protected APIs are currently not supported, sorry
 */
