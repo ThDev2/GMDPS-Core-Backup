@@ -20,7 +20,7 @@ $filters = ["songs.reuploadID = '".$accountID."'"];
 $pageOffset = is_numeric($_GET["page"]) ? (Escape::number($_GET["page"]) - 1) * 10 : 0;
 $page = '';
 
-$songs = Library::getSongs($filters, $order, $orderSorting, '', $pageOffset, false);
+$songs = Library::getSongs($filters, $order, $orderSorting, '', $pageOffset, 10);
 
 foreach($songs['songs'] AS &$song) $page .= Dashboard::renderSongCard($song, $person, $favouriteSongs);
 

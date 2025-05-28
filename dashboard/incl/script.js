@@ -314,6 +314,88 @@ async function updatePage() {
 		
 		element.onclick = () => favouriteSong(songID);
 	});
+	
+	const modalButtonElements = document.querySelectorAll("[dashboard-modal-button]");
+	modalButtonElements.forEach(async (element) => {
+		const modalID = element.getAttribute("dashboard-modal-button");
+		const modalElement = document.querySelector(`[dashboard-modal="${modalID}"]`);
+		const modalBackground = modalElement.querySelector(`span.background`);
+		
+		element.onclick = () => modalElement.classList.toggle("show");
+		modalBackground.onclick = () => modalElement.classList.remove("show");
+	});
+	
+	const selectSearchElements = document.querySelectorAll("[dashboard-select-search]");
+	selectSearchElements.forEach(async(element) => {
+		const searchID = element.getAttribute("dashboard-select-search");
+		const searchToggle = document.querySelector(`[dashboard-select-show="${searchID}"]`);
+		searchToggle.onchange = (e) => e.target.checked ? element.classList.add("view") : element.classList.remove("view");
+		
+		const searchInput = element.querySelector("[dashboard-select-input]");
+		const searchURL = searchInput.getAttribute("dashboard-select-input");
+		
+		const searchValueInput = element.querySelector("[dashboard-select-value]");
+		
+		element.addEventListener("focusin", () => element.classList.add("show"));
+		document.addEventListener("click", (e) => {
+			if(!element.contains(e.target) && element != e.target) element.classList.remove("show");
+		});
+		
+		searchInput.oninput = async (e) => {
+			const searchValue = e.target.value;
+			clearTimeout(intervals[searchID]);
+			
+			intervals[searchID] = setTimeout(async () => {
+				const searchOptions = element.querySelector("[dashboard-select-options]");
+				const searchResults = await searchSomething(searchURL, searchValue);
+				
+				searchValueInput.value = 0;
+				searchOptions.innerHTML = "";
+				
+				if(!searchResults.length) return;
+				
+				for await (const song of searchResults) {
+					const searchOption = document.createElement("option");
+					searchOption.innerHTML = `${song.author} - ${song.name}`;
+					
+					searchOption.onclick = () => {
+						searchInput.value = searchOption.innerHTML;
+						searchValueInput.value = song.ID;
+						
+						element.classList.remove("show");
+					}
+					
+					searchOptions.appendChild(searchOption);
+				}
+			}, 500);
+		}
+	});
+	
+	const filterButtonElements = document.querySelectorAll("[dashboard-filter-button]");
+	filterButtonElements.forEach(async(element) => {
+		const difficultyButton = element.querySelector("button");
+		const difficultyInput = element.querySelector("input");
+		const difficultyButtonStyle = element.getAttribute("dashboard-filter-button");
+		
+		difficultyButton.onclick = () => {
+			const isActivate = !element.classList.contains("activated");
+			
+			if(isActivate) {
+				element.classList.add("activated");
+				difficultyInput.disabled = false;
+			} else {
+				element.classList.remove("activated");
+				difficultyInput.disabled = true;
+			}
+			
+			if(difficultyButtonStyle == "demon") {
+				if(!isActivate) {
+					const demonDifficulties = document.querySelectorAll('.difficultyButton.activated[dashboard-filter-button="demon"]');
+					if(!demonDifficulties.length) element.parentElement.classList.remove("demon");
+				} else element.parentElement.classList.add("demon");
+			} 
+		}
+	});
 }
 
 function timeConverter(timestamp, textStyle = "short") {
@@ -493,4 +575,10 @@ async function getForm(form) {
 	}
 	
 	return formData;
+}
+
+async function searchSomething(url, search) {
+	const searchResult = await fetch(url + "?search=" + encodeURIComponent(search)).then(req => req.json());
+	
+	return searchResult;
 }

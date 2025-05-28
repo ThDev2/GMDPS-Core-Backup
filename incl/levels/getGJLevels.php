@@ -37,12 +37,12 @@ if((isset($_POST["uncompleted"]) || isset($_POST["onlyCompleted"])) && ($_POST["
 	$completedLevels = Escape::multiple_ids($_POST["completedLevels"]);
 	$filters[] = ($_POST['uncompleted'] == 1 ? 'NOT ' : '')."levelID IN (".$completedLevels.")";
 }
-if(isset($_POST["song"]) && $_POST["song"] > 0) {
+if(isset($_POST["song"])) {
 	$song = Escape::number($_POST["song"]);
 	if(!isset($_POST["customSong"])) {
 		$song = $song - 1;
 		$filters[] = "audioTrack = '".$song."' AND songID = 0";
-	} else $filters[] = "songID = '".$song."'";
+	} else $filters[] = $song == 0 ? "audioTrack = 0 AND songID > 0" : "songID = '".$song."'";
 }
 if(isset($_POST["twoPlayer"]) && $_POST["twoPlayer"] == 1) $filters[] = "twoPlayer = 1";
 if(isset($_POST["star"]) && $_POST["star"] == 1) $filters[] = "NOT starStars = 0";

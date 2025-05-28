@@ -186,7 +186,7 @@ $automaticCron = false;
 	
 	Players can mention levels in comments and other places by writing #levelID
 	Example: "Did you play #648? It's cool!"
-	Minor issue is you couldn't open player's account anymore
+	Minor issue is you can't open player's account anymore
 	
 	True — You can mention levels in comments and it will show first mentioned level
 	False — Comments in levels will never show level ID button

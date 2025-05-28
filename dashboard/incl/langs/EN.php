@@ -14,6 +14,7 @@ $language['settings'] = 'Settings';
 $language['main'] = 'Main';
 $language['userProfile'] = '%1$s\'s profile';
 $language['clanProfile'] = 'Clan %1$s';
+$language['levelProfile'] = 'Level %1$s';
 $language['nothingIsPlaying'] = 'Nothing is playing...';
 $language['manage'] = 'Manage';
 $language['view'] = 'View';
@@ -150,4 +151,34 @@ $language['favouritesCount'] = 'Favourites';
 $language['noSongs'] = 'No songs!';
 $language['editSong'] = 'Edit song';
 $language['downloadSong'] = 'Download song';
+
+$language['filters'] = 'Filters';
+$language['searchText'] = 'Search...';
+
+$language['originalLevelsTitle'] = 'Original levels';
+$language['originalLevelsDesc'] = 'Levels made without copying other levels';
+$language['coinsTitle'] = 'Coins';
+$language['coinsDesc'] = 'Levels with coins';
+$language['twoPlayerTitle'] = 'Two-player mode';
+$language['twoPlayerDesc'] = 'Levels with two-player mode';
+$language['notRatedTitle'] = 'Unrated levels';
+$language['notRatedDesc'] = 'Levels with no stars';
+$language['ratedTitle'] = 'Rated levels';
+$language['ratedDesc'] = 'Levels with stars';
+$language['featuredDesc'] = 'Levels with Featured rating';
+$language['epicDesc'] = 'Levels with Epic rating';
+$language['legendaryDesc'] = 'Levels with Legendary rating';
+$language['mythicDesc'] = 'Levels with Mythic rating';
+$language['songSettingTitle'] = 'Songs';
+$language['songSettingDesc'] = 'Levels with custom songs';
+
+$language['levelLengthTinyDesc'] = 'Levels with Tiny length';
+$language['levelLengthShortDesc'] = 'Levels with Short length';
+$language['levelLengthMediumDesc'] = 'Levels with Medium length';
+$language['levelLengthLongDesc'] = 'Levels with Long length';
+$language['levelLengthXLDesc'] = 'Levels with XL length';
+$language['levelLengthPlatformerDesc'] = 'Platformer levels';
+
+$language['resetFilters'] = 'Reset filters';
+$language['applyFilters'] = 'Apply filters';
 ?>

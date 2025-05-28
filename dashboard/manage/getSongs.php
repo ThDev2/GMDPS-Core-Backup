@@ -1,0 +1,31 @@
+<?php
+require_once __DIR__."/../incl/dashboardLib.php";
+require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+require_once __DIR__."/../".$dbPath."incl/lib/security.php";
+require_once __DIR__."/../".$dbPath."incl/lib/exploitPatch.php";
+require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
+$sec = new Security();
+
+$songs = [];
+
+if(isset($_GET['search'])) {
+	$search = trim(Escape::text($_GET['search']));
+	if(empty($search)) exit(json_encode([]));
+	
+	$filters = ['name LIKE "%'.$search.'%" OR authorName LIKE "%'.$search.'%" OR ID LIKE "'.$search.'"', "reuploadID > 0"];
+	
+	$songsArray = Library::getSongs($filters, false, '', '', 0, 5);
+	
+	foreach($songsArray['songs'] AS &$song) {
+		$songs[] = [
+			'ID' => $song['ID'],
+			'author' => htmlspecialchars($song['authorName']),
+			'name' => htmlspecialchars($song['name'])
+		];
+	}
+	
+	exit(json_encode($songs));
+}
+
+exit(json_encode([]));
+?>

@@ -12,7 +12,7 @@ require_once __DIR__."/../".$dbPath."incl/lib/enums.php";
 
 class Dashboard {
 	/*
-		Utils functions
+		Utils
 	*/
 	
 	public static function loginDashboardUser() {
@@ -125,6 +125,110 @@ class Dashboard {
 		$GLOBALS['core_cache']['dashboard']['iconKit'][$userID] = $iconKit;
 			
 		return $iconKit;
+	}
+	
+	public static function parseMentions($person, $body) {
+		global $dbPath;
+		require __DIR__."/../".$dbPath."incl/lib/connection.php";
+		require_once __DIR__."/../".$dbPath."incl/lib/exploitPatch.php";
+
+		$parseBody = explode(' ', $body);
+		$players = $levels = [];
+
+		foreach($parseBody AS &$element) {
+			$firstChar = mb_substr($element, 0, 1);
+			if(!in_array($firstChar, ['@', '#'])) continue;
+
+			$element = mb_substr($element, 1);
+
+			switch($firstChar) {
+				case '@':
+					if(in_array($element, $players)) break;
+
+					$player = Escape::latin($element);
+					if(empty($player)) break;
+					
+					$players[] = $player;
+					
+					$body = str_replace([' @'.$player, ' @'.$player.' ', '@'.$player.' '], ['&nbsp;@'.$player, '&nbsp;@'.$player.'&nbsp;', '@'.$player.'&nbsp;'], $body);
+
+					break;
+				case '#':
+					if(!is_numeric($element) || in_array($element, $levels)) break;
+
+					$level = Escape::number($element);
+					
+					$levels[] = $level;
+					
+					$body = str_replace([' #'.$level, ' #'.$level.' ', '#'.$level.' '], ['&nbsp;#'.$level, '&nbsp;#'.$level.'&nbsp;', '#'.$level.'&nbsp;'], $body);
+
+					break;
+			}
+		}
+		
+		$players = array_unique($players);
+		$levels = array_unique($levels);
+		
+		if(!empty($players)) {
+			Library::cacheAccountsByUserNames($players);
+			Library::cacheUsersByUserNames($players);
+			
+			foreach($players AS &$userName) {
+				$user = Library::getUserByUserName($userName);
+				if(!$user) continue;
+				
+				$account = Library::getAccountByUserName($userName);
+				if(!$account || !$account['isActive']) continue;
+				
+				$userMetadata = self::getUserMetadata($user);
+				$userString = self::getUsernameString($user['userName'], $userMetadata['mainIcon'], $userMetadata['userAppearance']['modBadgeLevel'], $userMetadata['userAttributes']);
+				
+				$body = str_replace('@'.$userName, $userString, $body);
+			}
+		}
+		
+		if(!empty($levels)) {
+			Library::cacheLevelsByID($levels);
+			
+			foreach($levels AS &$levelID) {
+				$level = Library::getLevelByID($levelID);
+				if(!$level) continue;
+				
+				$canSeeLevel = Library::canAccountPlayLevel($person, $level);
+				if(!$canSeeLevel) continue;
+				
+				$levelString = self::getLevelString($levelID, $level['levelName']);
+				
+				$body = str_replace('#'.$levelID, $levelString, $body);
+			}
+		}
+		
+		return $body;
+	}
+	
+	public static function getUserMetadata($user) {
+		global $dbPath;
+		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		
+		$userAttributes = [];
+		
+		$userPerson = [
+			'accountID' => $user['extID'],
+			'userID' => $user['userID'],
+			'IP' => $user['IP'],
+		];
+		$iconKit = self::getUserIconKit($user['userID']);
+		$userAppearance = Library::getPersonCommentAppearance($userPerson);
+		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
+		
+		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
+		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
+		
+		return [
+			'mainIcon' => $iconKit['main'],
+			'userAppearance' => $userAppearance,
+			'userAttributes' => implode(' ', $userAttributes)
+		];
 	}
 	
 	/*
@@ -268,36 +372,33 @@ class Dashboard {
 	
 	public static function getUsernameString($userName, $mainIcon, $badgeNumber, $attributes = '') {
 		return sprintf('<text class="username" title="'.sprintf(self::string('userProfile'), $userName).'" %3$s href="profile/%1$s">
-			<text class="emptySymbol">:(</text><img src="%2$s"></img>
+			<text class="emptySymbol">:(</text><img loading="lazy" src="%2$s"></img>
 			%1$s
 			'.($badgeNumber ? '<img src="incl/icons/badge_%4$s.png"></img>' : '').'
 		</text>', $userName, $mainIcon, $attributes, $badgeNumber);
 	}
 	
-	public static function renderLevelCard($level) {
+	public static function getLevelString($levelID, $levelName) {
+		return sprintf('<text class="username" title="'.sprintf(self::string('levelProfile'), htmlspecialchars($levelName)).'" href="browse/levels/%2$s">
+			<text class="emptySymbol">:(</text><i class="fa-solid fa-gamepad"></i>
+			%1$s
+		</text>', htmlspecialchars($levelName), (int)$levelID);
+	}
+	
+	public static function renderLevelCard($level, $person) {
 		global $dbPath;
 		require_once __DIR__."/../".$dbPath."incl/lib/mainLib.php";
+		
 		$user = Library::getUserByID($level['userID']);
 	
-		$userAttributes = [];
 		$levelLengths = ['Tiny', 'Short', 'Medium', 'Long', 'XL', 'Platformer'];
 		
-		$userPerson = [
-			'accountID' => $user['extID'],
-			'userID' => $user['userID'],
-			'IP' => $user['IP'],
-		];
-		$iconKit = self::getUserIconKit($userID);
-		$userAppearance = Library::getPersonCommentAppearance($userPerson);
-		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
-		
-		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
+		$userMetadata = self::getUserMetadata($user);
 		
 		$song = $level['songID'] ? Library::getSongByID($level['songID']) : Library::getAudioTrack($level['audioTrack']);
 		
-		$level['LEVEL_TITLE'] = sprintf(self::string('levelTitle'), $level['levelName'], self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes)));
-		$level['LEVEL_DESCRIPTION'] = htmlspecialchars(Escape::url_base64_decode($level['levelDesc'])) ?: "<i>".self::string('noDescription')."</i>";
+		$level['LEVEL_TITLE'] = sprintf(self::string('levelTitle'), $level['levelName'], self::getUsernameString($user['userName'], $userMetadata['mainIcon'], $userMetadata['userAppearance']['modBadgeLevel'], $userMetadata['userAttributes']));
+		$level['LEVEL_DESCRIPTION'] = self::parseMentions($person, htmlspecialchars(Escape::url_base64_decode($level['levelDesc']))) ?: "<i>".self::string('noDescription')."</i>";
 		$level['LEVEL_DIFFICULTY_IMAGE'] = Library::getLevelDifficultyImage($level);
 		
 		$level['LEVEL_LENGTH'] = $levelLengths[$level['levelLength']];
@@ -323,22 +424,10 @@ class Dashboard {
 		
 		$user = Library::getUserByID($comment['userID']);
 		
-		$userAttributes = [];
+		$userMetadata = self::getUserMetadata($user);
 		
-		$userPerson = [
-			'accountID' => $user['extID'],
-			'userID' => $user['userID'],
-			'IP' => $user['IP'],
-		];
-		$iconKit = self::getUserIconKit($userID);
-		$userAppearance = Library::getPersonCommentAppearance($userPerson);
-		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
-		
-		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
-		
-		$comment['COMMENT_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
-		$comment['COMMENT_CONTENT'] = htmlspecialchars(Escape::url_base64_decode($comment['comment']));
+		$comment['COMMENT_USER'] = self::getUsernameString($user['userName'], $userMetadata['mainIcon'], $userMetadata['userAppearance']['modBadgeLevel'], $userMetadata['userAttributes']);
+		$comment['COMMENT_CONTENT'] = self::parseMentions($person, htmlspecialchars(Escape::url_base64_decode($comment['comment'])));
 		
 		$comment['COMMENT_SHOW_PERCENT'] = $comment['percent'] > 0 ? 'true' : 'false';
 		
@@ -353,21 +442,9 @@ class Dashboard {
 		
 		$user = Library::getUserByID($score['userID']);
 		
-		$userAttributes = [];
+		$userMetadata = self::getUserMetadata($user);
 		
-		$userPerson = [
-			'accountID' => $user['extID'],
-			'userID' => $user['userID'],
-			'IP' => $user['IP'],
-		];
-		$iconKit = self::getUserIconKit($userID);
-		$userAppearance = Library::getPersonCommentAppearance($userPerson);
-		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
-		
-		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
-		
-		$score['SCORE_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
+		$score['SCORE_USER'] = self::getUsernameString($user['userName'], $userMetadata['mainIcon'], $userMetadata['userAppearance']['modBadgeLevel'], $userMetadata['userAttributes']);
 		
 		$score['SCORE_IS_LEADER'] = $score['SCORE_NUMBER'] < 4 ? 'true' : 'false';
 		$score['SCORE_CAN_DELETE'] = ($person['accountID'] == $user['accountID'] || Library::checkPermission($person, "dashboardDeleteLeaderboards")) ? 'true' : 'false';
@@ -391,23 +468,11 @@ class Dashboard {
 		
 		$user = Library::getUserByAccountID($song['reuploadID']);
 		
-		$userAttributes = [];
-		
-		$userPerson = [
-			'accountID' => $user['extID'],
-			'userID' => $user['userID'],
-			'IP' => $user['IP'],
-		];
-		$iconKit = self::getUserIconKit($userID);
-		$userAppearance = Library::getPersonCommentAppearance($userPerson);
-		$userColor = str_replace(",", " ", $userAppearance['commentColor']);
-		
-		if($userColor != '255 255 255') $userAttributes[] = 'style="--href-color: rgb('.$userColor.'); --href-shadow-color: rgb('.$userColor.' / 38%)"';
-		if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
+		$userMetadata = self::getUserMetadata($user);
 		
 		$downloadLink = urlencode(urldecode($song["download"]));
 		
-		$song['SONG_USER'] = self::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes));
+		$song['SONG_USER'] = self::getUsernameString($user['userName'], $userMetadata['mainIcon'], $userMetadata['userAppearance']['modBadgeLevel'], $userMetadata['userAttributes']);
 		
 		$song['SONG_TITLE'] = sprintf(self::string('songTitle'), htmlspecialchars($song['authorName']), htmlspecialchars($song['name']));
 		$song['SONG_AUTHOR'] = htmlspecialchars($song['authorName']);

@@ -81,6 +81,7 @@ class Library {
 		$account = $account->fetch();
 		
 		$GLOBALS['core_cache']['accounts']['userName'][$userName] = $account;
+		if($account) $GLOBALS['core_cache']['accounts']['accountID'][$account['accountID']] = $account;
 		
 		return $account;
 	}
@@ -109,6 +110,7 @@ class Library {
 		$account = $account->fetch();
 		
 		$GLOBALS['core_cache']['accounts']['email'][$email] = $account;
+		if($account) $GLOBALS['core_cache']['accounts']['accountID'][$account['accountID']] = $account;
 		
 		return $account;
 	}
@@ -123,6 +125,7 @@ class Library {
 		$account = $account->fetch();
 		
 		$GLOBALS['core_cache']['accounts']['discord'][$discordID] = $account;
+		if($account) $GLOBALS['core_cache']['accounts']['accountID'][$account['accountID']] = $account;
 		
 		return $account;
 	}
@@ -137,6 +140,10 @@ class Library {
 		$accounts = $accounts->fetchAll();
 		
 		$GLOBALS['core_cache']['accounts']['ip'][$IP] = $accounts;
+		
+		if($accounts) {
+			foreach($accounts AS &$account) $GLOBALS['core_cache']['accounts']['accountID'][$account['accountID']] = $account;
+		}
 		
 		return $accounts;
 	}
@@ -247,6 +254,7 @@ class Library {
 		$user = $user->fetch();
 		
 		$GLOBALS['core_cache']['user']['extID'][$extID] = $user;
+		if($user) $GLOBALS['core_cache']['user']['userID'][$user['userID']] = $user;
 		
 		return $user;
 	}
@@ -261,6 +269,7 @@ class Library {
 		$user = $user->fetch();
 		
 		$GLOBALS['core_cache']['user']['userName'][$userName] = $user;
+		if($user) $GLOBALS['core_cache']['user']['userID'][$user['userID']] = $user;
 		
 		return $user;
 	}
@@ -1483,6 +1492,73 @@ class Library {
 		return true;
 	}
 	
+	public static function cacheAccountsByID($accountIDs) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/exploitPatch.php";
+		
+		$accountIDsString = Escape::multiple_ids(implode(',', $accountIDs));
+		
+		$getAccounts = $db->prepare("SELECT * FROM accounts WHERE accountID IN (".$accountIDsString.")");
+		$getAccounts->execute();
+		$getAccounts = $getAccounts->fetchAll();
+		
+		foreach($getAccounts AS &$account) $GLOBALS['core_cache']['accounts']['accountID'][$account['accountID']] = $account;
+		
+		return $getAccounts;
+	}
+	
+	public static function cacheAccountsByUserNames($userNames) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/exploitPatch.php";
+		
+		$userNamesString = Escape::text(implode("','", $userNames));
+		
+		$getAccounts = $db->prepare("SELECT * FROM accounts WHERE userName IN ('".$userNamesString."')");
+		$getAccounts->execute();
+		$getAccounts = $getAccounts->fetchAll();
+		
+		foreach($getAccounts AS &$account) $GLOBALS['core_cache']['accounts']['userName'][$account['userName']] = $account;
+		
+		return $getAccounts;
+	}
+	
+	public static function cacheUsersByID($userIDs) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/exploitPatch.php";
+		
+		$userIDsString = Escape::multiple_ids(implode(',', $userIDs));
+		
+		$getUsers = $db->prepare("SELECT * FROM users WHERE userID IN (".$userIDsString.")");
+		$getUsers->execute();
+		$getUsers = $getUsers->fetchAll();
+		
+		foreach($getUsers AS &$user) $GLOBALS['core_cache']['user']['userID'][$user['userID']] = $user;
+		
+		return $getUsers;
+	}
+	
+	public static function cacheUsersByUserNames($userNames) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/exploitPatch.php";
+		
+		$userNamesString = Escape::text(implode("','", $userNames));
+		
+		$getUsers = $db->prepare("SELECT * FROM users WHERE userName IN ('".$userNamesString."') ORDER BY isRegistered DESC");
+		$getUsers->execute();
+		$getUsers = $getUsers->fetchAll();
+		
+		$userNames = [];
+		
+		foreach($getUsers AS &$user) {
+			if($userNames[strtolower($user['userName'])]) continue;
+			
+			$userNames[strtolower($user['userName'])] = true;
+			$GLOBALS['core_cache']['user']['userName'][$user['userName']] = $user;
+		}
+		
+		return $getUsers;
+	}
+	
 	/*
 		Levels-related functions
 	*/
@@ -1638,7 +1714,7 @@ class Library {
 		
 		if($unlistedLevelsForAdmins && self::isAccountAdministrator($accountID)) return true;
 		
-		return !($level['unlisted'] > 0 && ($level['unlisted'] == 1 && (self::isFriends($accountID, $level['extID']) || $accountID == $level['extID'])));
+		return $level['unlisted'] != 1 || ($accountID == $level['extID'] || self::isFriends($accountID, $level['extID']));
 	}
 	
 	public static function getDailyLevelID($type) {
@@ -2669,6 +2745,21 @@ class Library {
 		return true;
 	}
 	
+	public static function cacheLevelsByID($levelIDs) {
+		require __DIR__."/connection.php";
+		require_once __DIR__."/exploitPatch.php";
+		
+		$levelIDsString = Escape::multiple_ids(implode(',', $levelIDs));
+		
+		$getLevels = $db->prepare("SELECT * FROM levels WHERE levelID IN (".$levelIDsString.")");
+		$getLevels->execute();
+		$getLevels = $getLevels->fetchAll();
+		
+		foreach($getLevels AS &$level) $GLOBALS['core_cache']['levels'][$level['levelID']] = $level;
+		
+		return $getLevels;
+	}
+	
 	/*
 		Lists-related functions
 	*/
@@ -3597,10 +3688,10 @@ class Library {
 		file_put_contents(__DIR__.'/../../'.$types[$type].'/standalone.dat', $gdpsEncrypted);
 	}
 	
-	public static function getSongs($filters, $order, $orderSorting, $queryJoin, $pageOffset, $noLimit = false) {
+	public static function getSongs($filters, $order, $orderSorting, $queryJoin, $pageOffset, $limit = false) {
 		require __DIR__."/connection.php";
 		
-		$songs = $db->prepare("SELECT * FROM songs ".$queryJoin." WHERE (".implode(") AND (", $filters).") AND isDisabled = 0 ".($order ? "ORDER BY ".$order." ".$orderSorting : "")." ".(!$noLimit ? "LIMIT 10 OFFSET ".$pageOffset : ''));
+		$songs = $db->prepare("SELECT * FROM songs ".$queryJoin." WHERE (".implode(") AND (", $filters).") AND isDisabled = 0 ".($order ? "ORDER BY ".$order." ".$orderSorting : "")." ".($limit ? "LIMIT ".$limit." OFFSET ".$pageOffset : ''));
 		$songs->execute();
 		$songs = $songs->fetchAll();
 		

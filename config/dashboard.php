@@ -172,11 +172,11 @@ $iconsRendererServer = 'https://gdicon.oat.zone';
 	You can setup account for level reuploads, reuploaded levels will appear in this account
 
 	$automaticID — should level reupload tool use player's account or one you setup
-		True — levels will be reuploaded on player's account
-		False — levels will be reuploaded on account you setup
+		True — levels will be reuploaded on player's account
+		False — levels will be reuploaded on account you setup below
 	
-	$reuploadUserID — user ID of account for level reuploads
-	$reuploadAccountID — account ID of account for level reuploads
+	$reuploadUserID — user ID of account for level reuploads
+	$reuploadAccountID — account ID of account for level reuploads
 */
 $automaticID = true;
 $reuploadUserID = 0;

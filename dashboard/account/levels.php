@@ -17,7 +17,7 @@ $page = '';
 
 $levels = Library::getLevels($filters, $order, $orderSorting, '', $pageOffset, false);
 
-foreach($levels['levels'] AS &$level) $page .= Dashboard::renderLevelCard($level);
+foreach($levels['levels'] AS &$level) $page .= Dashboard::renderLevelCard($level, $person);
 
 $pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
 $pageCount = floor($levels['count'] / 10) + 1;

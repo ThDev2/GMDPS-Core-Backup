@@ -14,6 +14,7 @@ $language['settings'] = 'Настройки';
 $language['main'] = 'Главная';
 $language['userProfile'] = 'Профиль %1$s';
 $language['clanProfile'] = 'Клан %1$s';
+$language['levelProfile'] = 'Уровень %1$s';
 $language['nothingIsPlaying'] = 'Ничего не играет...';
 $language['manage'] = 'Управление';
 $language['view'] = 'Посмотреть';
@@ -150,4 +151,34 @@ $language['favouritesCount'] = 'Кол-во лайкнувших';
 $language['noSongs'] = 'Песен нет!';
 $language['editSong'] = 'Изменить песню';
 $language['downloadSong'] = 'Скачать песню';
+
+$language['filters'] = 'Фильтры';
+$language['searchText'] = 'Поиск...';
+
+$language['originalLevelsTitle'] = 'Оригинальные уровни';
+$language['originalLevelsDesc'] = 'Уровни, сделанные без копирования других уровней';
+$language['coinsTitle'] = 'Монетки';
+$language['coinsDesc'] = 'Уровни с монетками';
+$language['twoPlayerTitle'] = 'Два игрока';
+$language['twoPlayerDesc'] = 'Уровни с режимом двух игроков';
+$language['notRatedTitle'] = 'Неоценённые уровни';
+$language['notRatedDesc'] = 'Уровни без звёзд';
+$language['ratedTitle'] = 'Оценённые уровни';
+$language['ratedDesc'] = 'Уровни со звёздами';
+$language['featuredDesc'] = 'Уровни с оценкой Featured';
+$language['epicDesc'] = 'Уровни с оценкой Epic';
+$language['legendaryDesc'] = 'Уровни с оценкой Legendary';
+$language['mythicDesc'] = 'Уровни с оценкой Mythic';
+$language['songSettingTitle'] = 'С песней';
+$language['songSettingDesc'] = 'Уровни со своей песней';
+
+$language['levelLengthTinyDesc'] = 'Уровни длиной Tiny';
+$language['levelLengthShortDesc'] = 'Уровни длиной Short';
+$language['levelLengthMediumDesc'] = 'Уровни длиной Medium';
+$language['levelLengthLongDesc'] = 'Уровни длиной Long';
+$language['levelLengthXLDesc'] = 'Уровни длиной XL';
+$language['levelLengthPlatformerDesc'] = 'Уровни-платформеры';
+
+$language['resetFilters'] = 'Сбросить фильтры';
+$language['applyFilters'] = 'Применить фильтры';
 ?>

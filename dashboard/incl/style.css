@@ -242,6 +242,8 @@ body.hide .dashboard-page {
 	justify-content: center;
 	align-items: center;
 	
+	position: relative;
+	
 	background-color: #86868614;
 	border: 1px solid #86868624;
 	
@@ -253,6 +255,7 @@ body.hide .dashboard-page {
 	width: max-content;
 	
 	min-width: 35%;
+	max-width: 90%;
 }
 
 .wideBox {
@@ -621,7 +624,8 @@ nav::-webkit-scrollbar {
 	font-weight: 400;
 }
 
-.levelTitle h2 text {
+.levelTitle h2 text,
+.levelDescription text.username {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -642,7 +646,8 @@ nav::-webkit-scrollbar {
 	height: 32px;
 }
 
-.userButton text img {
+.userButton text img,
+.levelDescription .username img {
 	height: 30px;
 }
 
@@ -722,6 +727,11 @@ h1.username[href] {
 }
 
 .levelDescription {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	align-content: flex-start;
+	
 	height: 100%;
 }
 
@@ -1222,10 +1232,16 @@ i[onclick] {
 }
 
 .squareButton:active {
-	scale: 90% !important;
+	scale: 95% !important;
+}
+
+.squareButton:active::after {
+	scale: 105% !important;
 }
 
 .emptySymbol {
+	display: flex !important;
+	
 	margin-right: -7px;
 	
 	width: 0px;
@@ -1264,7 +1280,10 @@ i[onclick] {
 
 .inlineForm {
 	display: inline-flex;
+	
+	width: 100%;
 	gap: 10px;
+	
 	margin: 0px;
 }
 
@@ -1296,7 +1315,8 @@ text[title]::after,
 .commentStat[title]::after,
 .button[title]::after,
 .modeButtons [title]::after,
-.mainUsername [title]::after {
+.mainUsername [title]::after,
+.difficultyButton [title]::after {
 	content: attr(title);
 	position: absolute;
 	
@@ -1330,7 +1350,8 @@ text[title]:hover::after,
 .commentStat[title]:hover::after, 
 .button[title]:hover::after, 
 .modeButtons [title]:hover::after,
-.mainUsername [title]:hover::after  {
+.mainUsername [title]:hover::after,
+.difficultyButton [title]:hover::after {
 	opacity: 1;
 }
 
@@ -1355,15 +1376,19 @@ text[title]:hover::after,
 }
 
 .toggle {
+	appearance: none;
 	cursor: pointer;
 	
 	padding: 10px 25px;
 	
 	background-color: #86868624;
 	border: 1px solid #86868634;
+	
 	border-radius: 500px;
 	
 	height: max-content;
+	
+	transition: 0.1s;
 }
 
 .toggle::after {
@@ -1384,11 +1409,11 @@ text[title]:hover::after,
 	transition: 0.2s;
 }
 
-.toggle[activated="true"] {
+.toggle:checked {
 	box-shadow: 0px 0px 20px 0px #86868620;
 }
 
-.toggle[activated="true"]::after {
+.toggle:checked::after {
 	transform: translateX(50%);
 }
 
@@ -1426,6 +1451,8 @@ text[title]:hover::after,
 }
 
 .settingDescription h2 {
+	word-break: break-word;
+	
 	font-size: 30px;
 	font-weight: 700;
 	
@@ -1433,6 +1460,8 @@ text[title]:hover::after,
 }
 
 .settingDescription h3 {
+	word-break: break-word;
+	
 	color: gray;
 	
 	font-weight: 400;
@@ -1599,4 +1628,405 @@ text[title]:hover::after,
 
 .titleToRight[title] {
 	justify-content: flex-end;
+}
+
+.squareButton.big {
+	padding: 10px !important;
+}
+
+.modalPage {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	
+	opacity: 0;
+	visibility: hidden;
+	
+	padding: 100px;
+	box-sizing: border-box;
+	
+	position: fixed;
+	
+	top: 0px;
+	left: 0px;
+	
+	width: 100vw;
+	height: 100vh;
+	
+	overflow: scroll;
+	
+	transition: 0.2s;
+	
+	z-index: 6;
+}
+
+.modalPage span {
+	content: '';
+	position: fixed;
+	
+	cursor: pointer;
+	
+	top: 0px;
+	left: 0px;
+	
+	width: 100vw;
+	height: 100vh;
+	
+	background: #00000070;
+	
+	transition: 0.2s;
+	
+	z-index: -1;
+	backdrop-filter: blur(0px);
+}
+
+.modalPage .box {
+	min-width: 60%;
+}
+
+option {
+	cursor: pointer;
+	
+	padding: 10px;
+	color: #c0c0c0;
+	
+	font-size: 20px;
+	
+	outline: none;
+	white-space: break-spaces;
+	
+	transition: 0.2s;
+}
+
+option:hover {
+	background: #86868624 !important;
+}
+
+select::picker-icon {
+	color: #c0c0c0;
+	
+	rotate: 270deg;
+	transition: 0.2s rotate;
+}
+
+select:open::picker-icon {
+	rotate: 360deg;
+}
+
+::picker(select) {
+	appearance: base-select;
+	
+	top: calc(anchor(bottom) + 5px);
+	
+	border-radius: 10px;
+	
+	background: #86868614;
+	border: 1px solid #86868624;
+	
+	backdrop-filter: blur(5px);
+	
+	transition: 0.2s;
+}
+
+::picker(select):popover-open {
+	opacity: 1;
+}
+
+.select {
+	display: inline-flex;
+	justify-content: flex-end;
+	
+	position: relative;
+	
+	width: 100%;
+	
+	padding: 10px;
+	
+	background: #86868624;
+	border: 1px solid #86868634;
+	border-radius: 10px;
+	
+	font-size: 20px;
+	
+	outline: none;
+	box-sizing: border-box;
+	
+	cursor: pointer;
+	opacity: 0;
+	visibility: hidden;
+	
+	margin-top: -55px;
+
+	transition: 0.2s;
+}
+
+.select input {
+	width: 100%;
+	height: 100%;
+	
+	top: 0px;
+	left: 0px;
+	
+	padding: 10px;
+	
+	background: transparent;
+	border: none;
+	outline: none;
+	
+	font-size: 20px;
+	color: #c0c0c0;
+	
+	position: absolute;
+}
+
+.options {
+	position: absolute;
+	
+	opacity: 0;
+	pointer-events: none;
+	
+	left: 0px;
+	top: calc(100% + 10px);
+	
+	background: #86868624;
+	border: 1px solid #86868634;
+	border-radius: 10px;
+	
+	z-index: 5;
+	
+	backdrop-filter: blur(5px);
+	
+	width: 100%;
+	
+	transition: 0.2s;
+}
+
+.options :first-child {
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+
+.options :last-child {
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+
+i[dashboard-caret] {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	
+	pointer-events: none;
+	
+	width: 20px;
+	height: 25px;
+	
+	position: relative;
+	
+	transition: 0.2s;
+}
+
+i[dashboard-caret]::before {
+	position: absolute;
+}
+
+.select:has(option).show i[dashboard-caret] {
+	transform: rotate(90deg);
+}
+
+.select:has(option).show .options {
+	opacity: 1;
+	pointer-events: initial;
+	
+	@starting-style {
+		opacity: 0;
+		pointer-events: none;
+	}
+}
+
+.select.view {
+	opacity: 1;
+	visibility: initial;
+	margin-top: 0px;
+	
+	@starting-style {
+		opacity: 0;
+		visibility: hidden;
+		margin-top: -55px;
+	}
+}
+
+.modalPage.show {
+	opacity: 1;
+	visibility: initial;
+	
+	@starting-style {
+		opacity: 0;
+		visibility: hidden;
+	}
+}
+
+.modalPage.show span {
+	backdrop-filter: blur(5px);
+	
+	@starting-style {
+		backdrop-filter: blur(0px);
+	}
+}
+
+.modalPage .box {
+	background: #86868624;
+	border: 1px solid #86868634;
+}
+
+.difficultiesDiv {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	
+	transition: 0.2s;
+	
+	width: 100%;
+}
+
+.difficultyButton {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	
+	width: max-content;
+	
+	transition: 0.2s;
+	
+	position: relative;
+}
+
+.difficultyButton:has(img) {
+	width: 120px;
+	height: 120px;
+}
+
+.difficultyButton img {
+	position: absolute;
+	margin-right: 10px;
+	
+	width: 170px;
+	height: 170px;
+	
+	opacity: 0.6;
+	
+	transition: 0.2s;
+	
+	pointer-events: none;
+}
+
+.difficultyButton.activated img {
+	opacity: 1;
+}
+
+.difficultyButton button {
+	display: flex;
+	justify-content: center;
+	
+	width: 100%;
+	height: 100%;
+	
+	padding: 0px;
+	margin: 0px;
+	
+	outline: none;
+}
+
+.difficultiesDiv.buttons button {
+	opacity: 0.6;
+	
+	padding: 10px;
+	
+	background: #86868624;
+	border: 1px solid #86868634;
+	border-radius: 10px;
+	
+	font-size: 23px;
+	
+	transition: 0.2s;
+}
+
+.difficultiesDiv.buttons {
+	gap: 10px;
+}
+
+.difficultiesDiv.buttons .activated button {
+	opacity: 1;
+}
+
+.difficultiesDiv.buttons button:hover {
+	background: #86868634;
+}
+
+.difficultiesDiv.buttons button:active {
+	scale: 95%;
+}
+.difficultiesDiv.buttons button:active::after {
+	scale: 105%;
+}
+
+.difficultiesDiv.demon .difficultyButton.non-demon {
+	width: 0px;
+	
+	opacity: 0;
+	
+	pointer-events: none;
+	
+	@starting-style {
+		width: 120px;
+		
+		opacity: 1;
+		
+		pointer-events: initial;
+	}
+}
+
+.difficultiesDiv .difficultyButton.demon {
+	width: 0px;
+	
+	opacity: 0;
+		
+	pointer-events: none;
+}
+
+.difficultiesDiv.demon .difficultyButton.demon {
+	width: 120px;
+	
+	opacity: 1;
+	
+	pointer-events: initial;
+	
+	@starting-style {
+		width: 0px;
+	
+		opacity: 0;
+		
+		pointer-events: none;
+	}
+}
+
+.applyButtons {
+	display: flex;
+	
+	gap: 7px;
+	
+	position: absolute;
+	
+	right: 20px;
+	bottom: 20px;
+}
+
+.applyButtons button {
+	font-size: 25px;
+}
+
+.applyButtons i {
+	width: 25px;
+	height: 25px;
 }

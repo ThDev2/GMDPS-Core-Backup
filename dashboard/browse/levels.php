@@ -35,7 +35,7 @@ if($_GET['id']) {
 	if(!$user['isRegistered']) $userAttributes[] = 'dashboard-remove="href title"';
 	
 	$level['LEVEL_TITLE'] = sprintf(Dashboard::string('levelTitle'), $level['levelName'], Dashboard::getUsernameString($user['userName'], $iconKit['main'], $userAppearance['modBadgeLevel'], implode(' ', $userAttributes)));
-	$level['LEVEL_DESCRIPTION'] = htmlspecialchars(Escape::url_base64_decode($level['levelDesc'])) ?: "<i>".Dashboard::string('noDescription')."</i>";
+	$level['LEVEL_DESCRIPTION'] = Dashboard::parseMentions($person, htmlspecialchars(Escape::url_base64_decode($level['levelDesc']))) ?: "<i>".Dashboard::string('noDescription')."</i>";
 	$level['LEVEL_DIFFICULTY_IMAGE'] = Library::getLevelDifficultyImage($level);
 	
 	$level['LEVEL_LENGTH'] = $levelLengths[$level['levelLength']];
@@ -199,7 +199,7 @@ if($_GET['id']) {
 				$filters = ["songs.ID IN (".Escape::multiple_ids($level['LEVEL_SONG_IDS']).")"];
 				$additionalPage = '';
 
-				$songs = Library::getSongs($filters, '', '', '', $pageOffset, false);
+				$songs = Library::getSongs($filters, '', '', '', $pageOffset, 10);
 
 				foreach($songs['songs'] AS &$song) $additionalPage .= Dashboard::renderSongCard($song, $person, $favouriteSongs);
 
@@ -246,7 +246,7 @@ $page = '';
 
 $levels = Library::getLevels($filters, $order, $orderSorting, '', $pageOffset, false);
 
-foreach($levels['levels'] AS &$level) $page .= Dashboard::renderLevelCard($level);
+foreach($levels['levels'] AS &$level) $page .= Dashboard::renderLevelCard($level, $person);
 
 $pageNumber = ceil($pageOffset / 10) + 1 ?: 1;
 $pageCount = floor(($levels['count'] - 1) / 10) + 1;
