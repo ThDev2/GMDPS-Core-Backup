@@ -1409,12 +1409,25 @@ text[title]:hover::after,
 	transition: 0.2s;
 }
 
+.toggle:active::after {
+	scale: 0.9;
+	transform: translateX(-55%);
+}
+
 .toggle:checked {
-	box-shadow: 0px 0px 20px 0px #86868620;
+	background-color: var(--href-shadow-color);
+	box-shadow: 0px 0px 20px 0px var(--href-shadow-color);
 }
 
 .toggle:checked::after {
 	transform: translateX(50%);
+	
+	background-color: var(--href-color);
+}
+
+.toggle:checked:active::after {
+	scale: 0.9;
+	transform: translateX(55%);
 }
 
 .wideBox.grid {
@@ -1685,7 +1698,12 @@ text[title]:hover::after,
 	min-width: 60%;
 }
 
-option {
+.option {
+	display: flex;
+	align-items: center;
+	
+	gap: 3px;
+	
 	cursor: pointer;
 	
 	padding: 10px;
@@ -1699,7 +1717,7 @@ option {
 	transition: 0.2s;
 }
 
-option:hover {
+.option:hover {
 	background: #86868624 !important;
 }
 
@@ -1831,11 +1849,11 @@ i[dashboard-caret]::before {
 	position: absolute;
 }
 
-.select:has(option).show i[dashboard-caret] {
+.select:has(.option).show i[dashboard-caret] {
 	transform: rotate(90deg);
 }
 
-.select:has(option).show .options {
+.select:has(.option).show .options {
 	opacity: 1;
 	pointer-events: initial;
 	
@@ -1915,6 +1933,7 @@ i[dashboard-caret]::before {
 	height: 170px;
 	
 	opacity: 0.6;
+	filter: saturate(0.5);
 	
 	transition: 0.2s;
 	
@@ -1923,6 +1942,7 @@ i[dashboard-caret]::before {
 
 .difficultyButton.activated img {
 	opacity: 1;
+	filter: saturate(1);
 }
 
 .difficultyButton button {

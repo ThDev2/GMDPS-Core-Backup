@@ -37,9 +37,9 @@ function loadAudioPlayer() {
 		player.audio.onloadedmetadata = async function() {
 			player.isPlaying = songID;
 			
-			player.songAuthor.innerHTML = songAuthor;
-			player.songTitle.innerHTML = songTitle + " •";
-			player.songID.innerHTML = songID;
+			player.songAuthor.innerHTML = escapeHTML(songAuthor);
+			player.songTitle.innerHTML = escapeHTML(songTitle) + " •";
+			player.songID.innerHTML = escapeHTML(songID);
 			player.songID.onclick = () => copyElementContent(songID);
 			player.downloadButton.onclick = () => downloadSong(songAuthor, songTitle, songURL);
 			player.current.interact = () => player.interact(songID, songAuthor, songTitle, songURL);

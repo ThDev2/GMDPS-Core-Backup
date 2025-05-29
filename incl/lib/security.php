@@ -214,7 +214,7 @@ class Security {
 		$person = ["success" => true, "accountID" => $loginToAccount['accountID'], "userID" => $loginToAccount['userID'], "userName" => $loginToAccount["userName"], "IP" => $loginToAccount['IP'], 'auth' => $auth];
 		
 		$checkBan = Library::getPersonBan($person, 4);
-		if($checkBan) return true;
+		if($checkBan) return ["success" => false, "error" => LoginError::AccountIsBanned, "accountID" => $loginToAccount['accountID'], "IP" => $loginToAccount['IP']];
 		
 		return $person;
 	}
@@ -631,7 +631,7 @@ class Security {
         $string = '';
 		
         foreach($dict as $key => $value) {
-            $string[] .= "${separator}${key}${separator}${value}";
+            $string[] .= "{$separator}{$key}{$separator}{$value}";
         }
 		
         return $string;

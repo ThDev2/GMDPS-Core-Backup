@@ -2,6 +2,7 @@ if(typeof localStorage.player_volume == "undefined") localStorage.player_volume 
 
 var dashboardLoader, dashboardBody, dashboardBase;
 var intervals = [];
+var updateFilters = true;
 
 window.addEventListener('load', () => {
 	dashboardLoader = document.getElementById("dashboard-loader");
@@ -309,7 +310,7 @@ async function updatePage() {
 	}
 	
 	const favouriteButtonsElements = document.querySelectorAll("[dashboard-favourite]");
-	favouriteButtonsElements.forEach(async(element) => {
+	favouriteButtonsElements.forEach(async (element) => {
 		const songID = element.getAttribute("dashboard-favourite");
 		
 		element.onclick = () => favouriteSong(songID);
@@ -326,15 +327,23 @@ async function updatePage() {
 	});
 	
 	const selectSearchElements = document.querySelectorAll("[dashboard-select-search]");
-	selectSearchElements.forEach(async(element) => {
+	selectSearchElements.forEach(async (element) => {
 		const searchID = element.getAttribute("dashboard-select-search");
 		const searchToggle = document.querySelector(`[dashboard-select-show="${searchID}"]`);
-		searchToggle.onchange = (e) => e.target.checked ? element.classList.add("view") : element.classList.remove("view");
+		const searchValueInput = element.querySelector("[dashboard-select-value]");
+		
+		searchToggle.onchange = (e) => {
+			if(e.target.checked) {
+				element.classList.add("view");
+				searchValueInput.disabled = false;
+			} else {
+				element.classList.remove("view");
+				searchValueInput.disabled = true;
+			}
+		}
 		
 		const searchInput = element.querySelector("[dashboard-select-input]");
 		const searchURL = searchInput.getAttribute("dashboard-select-input");
-		
-		const searchValueInput = element.querySelector("[dashboard-select-value]");
 		
 		element.addEventListener("focusin", () => element.classList.add("show"));
 		document.addEventListener("click", (e) => {
@@ -355,11 +364,12 @@ async function updatePage() {
 				if(!searchResults.length) return;
 				
 				for await (const song of searchResults) {
-					const searchOption = document.createElement("option");
-					searchOption.innerHTML = `${song.author} - ${song.name}`;
+					const searchOption = document.createElement("div");
+					searchOption.classList.add("option");
+					searchOption.innerHTML = song.icon.length ? song.icon + " " + escapeHTML(song.name) : escapeHTML(song.name);
 					
 					searchOption.onclick = () => {
-						searchInput.value = searchOption.innerHTML;
+						searchInput.value = escapeHTML(song.name);
 						searchValueInput.value = song.ID;
 						
 						element.classList.remove("show");
@@ -372,9 +382,9 @@ async function updatePage() {
 	});
 	
 	const filterButtonElements = document.querySelectorAll("[dashboard-filter-button]");
-	filterButtonElements.forEach(async(element) => {
+	filterButtonElements.forEach(async (element) => {
 		const difficultyButton = element.querySelector("button");
-		const difficultyInput = element.querySelector("input");
+		const difficultyInputs = element.querySelectorAll("input");
 		const difficultyButtonStyle = element.getAttribute("dashboard-filter-button");
 		
 		difficultyButton.onclick = () => {
@@ -382,10 +392,10 @@ async function updatePage() {
 			
 			if(isActivate) {
 				element.classList.add("activated");
-				difficultyInput.disabled = false;
+				difficultyInputs.forEach(element => element.disabled = false);
 			} else {
 				element.classList.remove("activated");
-				difficultyInput.disabled = true;
+				difficultyInputs.forEach(element => element.disabled = true);
 			}
 			
 			if(difficultyButtonStyle == "demon") {
@@ -396,6 +406,58 @@ async function updatePage() {
 			} 
 		}
 	});
+	
+	const modalPage = document.querySelector("[dashboard-modal]");
+	if(modalPage != null && updateFilters) {
+		const url = new URL(window.location.href);
+		
+		for(const entry of url.searchParams.entries()) {
+			const entryName = entry[0];
+			const entryValue = escapeHTML(decodeURIComponent(entry[1]));
+		
+			const input = modalPage.querySelector(`input[name="${entryName}"]`);
+			if(input != null) {
+				 if(input.type == 'checkbox') {
+					 if(entryValue == '1') { // No, i can't move this if to if above
+						input.click();
+						
+						const selectID = input.getAttribute("dashboard-select-show");
+						if(selectID != null) {
+							const selectDiv = modalPage.querySelector("[dashboard-select-search]");
+							const selectValueInput = selectDiv.querySelector("[dashboard-select-value]");
+							const selectValue = url.searchParams.get(selectValueInput.name);
+							const selectInput = selectDiv.querySelector("[dashboard-select-input]");
+							
+							console.log(selectValue.trim().length, selectValue != '0', selectValue);
+							
+							if(selectValue.trim().length && selectValue != '0') {
+								const search = await searchSomething(selectInput.getAttribute("dashboard-select-input"), selectValue);
+								
+								if(search.length) {
+									selectInput.value = escapeHTML(search[0].name);
+									selectValueInput.value = selectValue;
+								}
+							}
+						}
+					 }
+				 } else {
+					 input.value = entryValue;
+				 }
+			} else {
+				const inputs = modalPage.querySelectorAll(`input[name="${entryName}[]"]`);
+				if(inputs.length) {
+					const inputValues = entryValue.split(",");
+					
+					inputs.forEach(async (element) => {
+						const inputButton = element.parentElement.querySelector("button");
+						
+						if(inputValues.includes(element.value) && !element.hasAttribute("dashboard-modal-skip")) inputButton.click();
+					});
+				}
+			}
+		}
+	}
+	if(updateFilters) updateFilters = false;
 }
 
 function timeConverter(timestamp, textStyle = "short") {
@@ -581,4 +643,48 @@ async function searchSomething(url, search) {
 	const searchResult = await fetch(url + "?search=" + encodeURIComponent(search)).then(req => req.json());
 	
 	return searchResult;
+}
+
+async function applyFilters(modalID) {
+	const formElement = document.querySelector(`form[dashboard-modal="${modalID}"]`);
+	const formInputs = formElement.querySelectorAll("input"); // FormData(formElement) is bugged and skips inputs for no reason
+	
+	const realForm = new FormData();
+	
+	const arrayEntries = {};
+	
+	formInputs.forEach(async (input) => {
+		const inputName = input.getAttribute("name");
+		const inputValue = input.value;
+
+		if(inputName == null || input.disabled || (input.type == "checkbox" && !input.checked) || !inputValue.trim().length) return;
+		
+		if(inputName.endsWith("[]")) {
+			if(arrayEntries[inputName.slice(0, -2)] == null) arrayEntries[inputName.slice(0, -2)] = [];
+					
+			arrayEntries[inputName.slice(0, -2)].push(inputValue.trim());
+		} else realForm.set(inputName, inputValue);
+	});
+	
+	for(const entry of Object.entries(arrayEntries)) {
+		const entryName = entry[0];
+		const entryValue = entry[1].filter((value, index, self) => self.indexOf(value) === index);
+		
+		realForm.set(entryName, entryValue.join(','));
+	}
+	
+	updateFilters = true;
+	await getPage(window.location.pathname + "?" + new URLSearchParams(realForm).toString());
+}
+
+function escapeHTML(text) {
+	var map = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#039;'
+	};
+	
+	return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }

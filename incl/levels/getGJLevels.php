@@ -13,95 +13,19 @@ $userID = $person["userID"];
 
 $time = time();
 $echoString = $userString = $songsString = $queryJoin = '';
-$levelsStatsArray = $epicParams = [];
+$levelsStatsArray = [];
 $order = "uploadDate";
 $orderSorting = "DESC";
 $orderEnabled = $isIDSearch = $noLimit = false;
-$filters = ["(unlisted = 0 AND unlisted2 = 0)"];
 
 $str = Escape::text($_POST["str"]) ?: '';
 $gameVersion = Escape::number($_POST["gameVersion"]) ?: 18;
-$binaryVersion = Escape::number($_POST["binaryVersion"]) ?: 0;
-$type = Escape::number($_POST["type"]) ?: 0;
-$diff = Escape::multiple_ids($_POST["diff"]) ?: '-';
 
 $pageOffset = is_numeric($_POST["page"]) ? Escape::number($_POST["page"]) * 10 : 0;
 
-// Additional search parameters
-
-if(!$showAllLevels) $filters[] = "levels.gameVersion <= '".$gameVersion."'";
-
-if(isset($_POST["original"]) && $_POST["original"] == 1) $filters[] = "original = 0";
-if(isset($_POST["coins"]) && $_POST["coins"] == 1) $filters[] = "starCoins = 1 AND NOT levels.coins = 0";
-if((isset($_POST["uncompleted"]) || isset($_POST["onlyCompleted"])) && ($_POST["uncompleted"] == 1 || $_POST["onlyCompleted"] == 1)) {
-	$completedLevels = Escape::multiple_ids($_POST["completedLevels"]);
-	$filters[] = ($_POST['uncompleted'] == 1 ? 'NOT ' : '')."levelID IN (".$completedLevels.")";
-}
-if(isset($_POST["song"])) {
-	$song = Escape::number($_POST["song"]);
-	if(!isset($_POST["customSong"])) {
-		$song = $song - 1;
-		$filters[] = "audioTrack = '".$song."' AND songID = 0";
-	} else $filters[] = $song == 0 ? "audioTrack = 0 AND songID > 0" : "songID = '".$song."'";
-}
-if(isset($_POST["twoPlayer"]) && $_POST["twoPlayer"] == 1) $filters[] = "twoPlayer = 1";
-if(isset($_POST["star"]) && $_POST["star"] == 1) $filters[] = "NOT starStars = 0";
-if(isset($_POST["noStar"]) && $_POST["noStar"] == 1) $filters[] = "starStars = 0";
-if(isset($_POST["gauntlet"]) && $_POST["gauntlet"] != 0) {
-	$gauntletID = Escape::number($_POST["gauntlet"]);
-	
-	$gauntlet = Library::getGauntletByID($gauntletID);
-	$str = $gauntlet["level1"].",".$gauntlet["level2"].",".$gauntlet["level3"].",".$gauntlet["level4"].",".$gauntlet["level5"];
-
-	$type = 10;
-}
-$len = Escape::multiple_ids($_POST["len"]) ?: '-';
-if($len != "-" AND !empty($len)) $filters[] = "levelLength IN (".$len.")";
-if(isset($_POST["featured"]) && $_POST["featured"] == 1) $epicParams[] = "starFeatured > 0";
-if(isset($_POST["epic"]) && $_POST["epic"] == 1) $epicParams[] = "starEpic = 1";
-if(isset($_POST["mythic"]) && $_POST["mythic"] == 1) $epicParams[] = "starEpic = 2"; // The reason why Mythic and Legendary ratings are swapped: RobTop accidentally swapped them in-game
-if(isset($_POST["legendary"]) && $_POST["legendary"] == 1) $epicParams[] = "starEpic = 3";
-$epicFilter = implode(" OR ", $epicParams);
-if(!empty($epicFilter)) $filters[] = $epicFilter;
-
-// Difficulty filters
-switch($diff) {
-	case -1:
-		$filters[] = "starDifficulty = '0'";
-		break;
-	case -3:
-		$filters[] = "starAuto = '1'";
-		break;
-	case -2:
-		$demonFilter = Escape::number($_POST["demonFilter"]) ?: 0;
-		$filters[] = "starDemon = 1";
-		switch($demonFilter) {
-			case 1:
-				$filters[] = "starDemonDiff = '3'";
-				break;
-			case 2:
-				$filters[] = "starDemonDiff = '4'";
-				break;
-			case 3:
-				$filters[] = "starDemonDiff = '0'";
-				break;
-			case 4:
-				$filters[] = "starDemonDiff = '5'";
-				break;
-			case 5:
-				$filters[] = "starDemonDiff = '6'";
-				break;
-		}
-		break;
-	case "-";
-		break;
-	default:
-		if($diff) {
-			$diff = str_replace(",", "0,", $diff)."0";
-			$filters[] = "starDifficulty IN (".$diff.") AND starAuto = '0' AND starDemon = '0'";
-		}
-		break;
-}
+$getFilters = Library::getLevelSearchFilters($_POST, $gameVersion, false, false);
+$filters = $getFilters['filters'];
+$type = $getFilters['type'];
 
 // Type detection
 switch($type) {

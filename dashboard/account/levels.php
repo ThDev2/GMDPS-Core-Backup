@@ -11,9 +11,13 @@ $userID = $person['userID'];
 
 $order = "uploadDate";
 $orderSorting = "DESC";
-$filters = ["levels.userID = '".$userID."'"];
 $pageOffset = is_numeric($_GET["page"]) ? (Escape::number($_GET["page"]) - 1) * 10 : 0;
 $page = '';
+
+$getFilters = Library::getLevelSearchFilters($_GET, 22, true, true);
+$filters = $getFilters['filters'];
+
+$filters[] = "levels.userID = '".$userID."'";
 
 $levels = Library::getLevels($filters, $order, $orderSorting, '', $pageOffset, false);
 
@@ -26,6 +30,8 @@ $dataArray = [
 	'ADDITIONAL_PAGE' => $page,
 	'LEVEL_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
 	'LEVEL_NO_LEVELS' => empty($page) ? 'true' : 'false',
+	
+	'ENABLE_FILTERS' => 'true',
 	
 	'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 	'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',

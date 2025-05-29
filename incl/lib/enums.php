@@ -148,7 +148,7 @@ class Action { // Last action ID is 57
 	const LevelDescriptionChange = 21;
 }
 
-class ModeratorAction { // Last action ID is 46
+class ModeratorAction { // Last action ID is 47
 	const LevelRate = 1;
 	const LevelDailySet = 5;
 	const LevelDeletion = 6;
@@ -167,6 +167,7 @@ class ModeratorAction { // Last action ID is 46
 
 	const PersonBan = 28;
 	const PersonUnban = 46;
+	const PersonBanChange = 47;
 	
 	// To be done with dashboard
 	const LevelSuggestRemove = 40;

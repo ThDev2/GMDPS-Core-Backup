@@ -240,9 +240,11 @@ if($_GET['id']) {
 // Search levels
 $order = "uploadDate";
 $orderSorting = "DESC";
-$filters = ["(unlisted = 0 AND unlisted2 = 0)"];
 $pageOffset = is_numeric($_GET["page"]) ? (Escape::number($_GET["page"]) - 1) * 10 : 0;
 $page = '';
+
+$getFilters = Library::getLevelSearchFilters($_GET, 22, true, false);
+$filters = $getFilters['filters'];
 
 $levels = Library::getLevels($filters, $order, $orderSorting, '', $pageOffset, false);
 
@@ -255,6 +257,8 @@ $dataArray = [
 	'ADDITIONAL_PAGE' => $page,
 	'LEVEL_PAGE_TEXT' => sprintf(Dashboard::string('pageText'), $pageNumber, $pageCount),
 	'LEVEL_NO_LEVELS' => empty($page) ? 'true' : 'false',
+	
+	'ENABLE_FILTERS' => 'true',
 	
 	'IS_FIRST_PAGE' => $pageNumber == 1 ? 'true' : 'false',
 	'IS_LAST_PAGE' => $pageNumber == $pageCount ? 'true' : 'false',

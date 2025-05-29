@@ -19,8 +19,8 @@ if(isset($_GET['search'])) {
 	foreach($songsArray['songs'] AS &$song) {
 		$songs[] = [
 			'ID' => $song['ID'],
-			'author' => htmlspecialchars($song['authorName']),
-			'name' => htmlspecialchars($song['name'])
+			'name' => htmlspecialchars($song['authorName'].' - '.$song['name']),
+			'icon' => '<i class="fa-solid fa-music"></i>'
 		];
 	}
 	

@@ -383,7 +383,7 @@ class Library {
 	}
 	
 	public static function getUserString($user) {
-		$user['userName'] = Library::makeClanUsername($user['extID']);
+		$user['userName'] = self::makeClanUsername($user['extID']);
 		
 		return $user['userID'].':'.$user["userName"].':'.$user['extID'];
 	}
@@ -486,20 +486,30 @@ class Library {
 			'IP' => $IP
 		];
 		
-		if($banType == 4) {
-			switch($personType) {
-				case 0:
-					$removeAuth = $db->prepare('UPDATE accounts SET auth = "none" WHERE accountID = :accountID');
+		switch($personType) {
+			case 0:
+				$person = $person['accountID'];
+				
+				if($banType == 4) {
+					$removeAuth = $db->prepare('UPDATE accounts SET auth = "" WHERE accountID = :accountID');
 					$removeAuth->execute([':accountID' => $person]);
-					break;
-				case 2:
+				}
+				
+				break;
+			case 1:
+				$person = $person['userID'];
+				
+				break;
+			case 2:
+				$person = self::convertIPForSearching($person['IP']);
+				
+				if($banType == 4) {
 					$banIP = $db->prepare("INSERT INTO bannedips (IP) VALUES (:IP)");
 					$banIP->execute([':IP' => $person]);
-					break;
-			}
+				}
+				
+				break;
 		}
-		
-		if($personType == 2) $person = self::convertIPForSearching($person);
 		
 		$check = self::getBan($person, $personType, $banType);
 		if($check) {
@@ -586,17 +596,18 @@ class Library {
 		return $IP[0].'.'.$IP[1].'.'.$IP[2].($isSearch ? '' : '.0');
 	}
 	
-	public static function changeBan($banID, $modID, $reason, $expires) {
+	public static function changeBan($banID, $modPerson, $reason, $expires, $modReason) {
 		require __DIR__."/connection.php";
 		
 		$ban = self::getBanByID($banID);
 		$reason = base64_encode($reason);
+		if(!empty($modReason)) $modReason = base64_encode($modReason);
+		
 		if($ban && $ban['isActive'] != 0) {
-			$unban = $db->prepare('UPDATE bans SET reason = :reason, expires = :expires WHERE banID = :banID');
-			$unban->execute([':banID' => $banID, ':reason' => $reason, ':expires' => $expires]);
+			$changeBan = $db->prepare('UPDATE bans SET reason = :reason, modReason = :modReason, expires = :expires WHERE banID = :banID');
+			$changeBan->execute([':banID' => $banID, ':reason' => $reason, ':modReason' => $modReason, ':expires' => $expires]);
 			
-			$query = $db->prepare("INSERT INTO modactions (type, value, value2, value3, value4, value5, value6, timestamp, account) VALUES ('28', :value, :value2, :value3, :value4, :value5, :value6, :timestamp, :account)");
-			$query->execute([':value' => $ban['person'], ':value2' => $reason, ':value3' => $ban['personType'], ':value4' => $ban['banType'], ':value5' => $expires, ':value6' => 2, ':timestamp' => time(), ':account' => $modID]);
+			self::logModeratorAction($modPerson, ModeratorAction::PersonBanChange, $ban['person'], $reason, $ban['personType'], $ban['banType'], $expires, $modReason);
 			//$this->sendBanWebhook($banID, $modID);
 			
 			return true;
@@ -828,7 +839,7 @@ class Library {
 				
 				break;
 			case 'friends':
-				$friendsArray = Library::getFriends($accountID);
+				$friendsArray = self::getFriends($accountID);
 				$friendsArray[] = $accountID;
 				$friendsString = "'".implode("','", $friendsArray)."'";
 				
@@ -1681,7 +1692,7 @@ class Library {
 	
 	public static function getLevels($filters, $order, $orderSorting, $queryJoin, $pageOffset, $noLimit = false) {
 		require __DIR__."/connection.php";
-		
+
 		$levels = $db->prepare("SELECT * FROM levels ".$queryJoin." WHERE (".implode(") AND (", $filters).") AND isDeleted = 0 ".($order ? "ORDER BY ".$order." ".$orderSorting : "")." ".(!$noLimit ? "LIMIT 10 OFFSET ".$pageOffset : ''));
 		$levels->execute();
 		$levels = $levels->fetchAll();
@@ -1960,7 +1971,7 @@ class Library {
 		
 		$starCoins = $verifyCoins != 0 ? 1 : 0;
 		$starDemon = $realDifficulty['demon'] != 0 ? 1 : 0;
-		$demonDiff = $realDifficulty['demon'];
+		$demonDiff = $realDifficulty['demon'] != 1 ? $realDifficulty['demon'] : 0;
 		
 		$rateLevel = $db->prepare("UPDATE levels SET starDifficulty = :starDifficulty, difficultyDenominator = 10, starStars = :starStars, starFeatured = :starFeatured, starEpic = :starEpic, starCoins = :starCoins, starDemon = :starDemon, starDemonDiff = :starDemonDiff, starAuto = :starAuto, rateDate = :rateDate WHERE levelID = :levelID AND isDeleted = 0");
 		$rateLevel->execute([':starDifficulty' => $realDifficulty['difficulty'], ':starStars' => $stars, ':starFeatured' => $featured, ':starEpic' => $epic, ':starCoins' => $starCoins, ':starDemon' => $starDemon, ':starDemonDiff' => $demonDiff, ':starAuto' => $realDifficulty['auto'], ':rateDate' => time(), ':levelID' => $levelID]);
@@ -2463,7 +2474,7 @@ class Library {
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0 || Automod::isLevelsDisabled(2)) return false;
 		
-		$checkBan = Library::getPersonBan($person, 0);
+		$checkBan = self::getPersonBan($person, 0);
 		if($checkBan) return false;
 		
 		$accountID = $person['accountID'];
@@ -2549,7 +2560,7 @@ class Library {
 		
 		if($person['accountID'] == 0 || $person['userID'] == 0) return false;
 		
-		$checkBan = Library::getPersonBan($person, 0);
+		$checkBan = self::getPersonBan($person, 0);
 		if($checkBan) return false;
 		
 		$accountID = $person['accountID'];
@@ -2735,7 +2746,7 @@ class Library {
 		$getScore = $db->prepare("SELECT * FROM ".($isPlatformer ? 'plat' : 'level')."scores WHERE ".($isPlatformer ? 'ID' : 'scoreID')." = :scoreID");
 		$getScore->execute([':scoreID' => $scoreID]);
 		$getScore = $getScore->fetch();
-		if(!$getScore || ($accountID != $getScore['accountID'] && !Library::checkPermission($person, "dashboardDeleteLeaderboards"))) return false;
+		if(!$getScore || ($accountID != $getScore['accountID'] && !self::checkPermission($person, "dashboardDeleteLeaderboards"))) return false;
 		
 		$deleteScore = $db->prepare("DELETE FROM ".($isPlatformer ? 'plat' : 'level')."scores WHERE ".($isPlatformer ? 'ID' : 'scoreID')." = :scoreID");
 		$deleteScore->execute([':scoreID' => $scoreID]);
@@ -2758,6 +2769,99 @@ class Library {
 		foreach($getLevels AS &$level) $GLOBALS['core_cache']['levels'][$level['levelID']] = $level;
 		
 		return $getLevels;
+	}
+	
+	public static function getLevelSearchFilters($query, $gameVersion, $addSearchFilter, $removeDefaultFilter) {
+		require __DIR__."/../../config/misc.php";
+		require_once __DIR__."/exploitPatch.php";
+		
+		$epicParams = $diffParams = $demonParams = [];
+		$filters = !$removeDefaultFilter ? ["unlisted = 0 AND unlisted2 = 0"] : [];
+
+		$str = Escape::text(urldecode($query["str"])) ?: '';
+		
+		$type = Escape::number($query["type"]) ?: 0;
+		$diff = Escape::multiple_ids(urldecode($query["diff"])) ?: '-';
+
+		if(!$showAllLevels) $filters[] = "levels.gameVersion <= '".$gameVersion."'";
+
+		if(isset($query["original"]) && $query["original"] == 1) $filters[] = "original = 0";
+		if(isset($query["coins"]) && $query["coins"] == 1) $filters[] = "starCoins = 1 AND NOT levels.coins = 0";
+		
+		if((isset($query["uncompleted"]) || isset($query["onlyCompleted"])) && ($query["uncompleted"] == 1 || $query["onlyCompleted"] == 1)) {
+			$completedLevels = Escape::multiple_ids(urldecode($query["completedLevels"]));
+			$filters[] = ($query['uncompleted'] == 1 ? 'NOT ' : '')."levelID IN (".$completedLevels.")";
+		}
+		
+		if(isset($query["song"])) {
+			$song = Escape::number($query["song"]);
+			if(!isset($query["customSong"])) {
+				$song = $song - 1;
+				$filters[] = "audioTrack = '".$song."' AND songID = 0";
+			} else $filters[] = $song == 0 ? "audioTrack = 0 AND songID > 0" : "songID = '".$song."'";
+		}
+		
+		if(isset($query["twoPlayer"]) && $query["twoPlayer"] == 1) $filters[] = "twoPlayer = 1";
+		if(isset($query["star"]) && $query["star"] == 1) $filters[] = "NOT starStars = 0";
+		if(isset($query["noStar"]) && $query["noStar"] == 1) $filters[] = "starStars = 0";
+		
+		if(isset($query["gauntlet"]) && $query["gauntlet"] != 0) {
+			$gauntletID = Escape::number($query["gauntlet"]);
+			
+			$gauntlet = self::getGauntletByID($gauntletID);
+			$str = $gauntlet["level1"].",".$gauntlet["level2"].",".$gauntlet["level3"].",".$gauntlet["level4"].",".$gauntlet["level5"];
+
+			$type = 10;
+		}
+		
+		$len = Escape::multiple_ids(urldecode($query["len"])) ?: '-';
+		if($len && $len != "-") $filters[] = "levelLength IN (".$len.")";
+		
+		if(isset($query["featured"]) && $query["featured"] == 1) $epicParams[] = "starFeatured > 0";
+		if(isset($query["epic"]) && $query["epic"] == 1) $epicParams[] = "starEpic = 1";
+		if(isset($query["mythic"]) && $query["mythic"] == 1) $epicParams[] = "starEpic = 2"; // The reason why Mythic and Legendary ratings are swapped: RobTop accidentally swapped them in-game
+		if(isset($query["legendary"]) && $query["legendary"] == 1) $epicParams[] = "starEpic = 3";
+		$epicFilter = implode(" OR ", $epicParams);
+		if(!empty($epicFilter)) $filters[] = $epicFilter;
+		
+		if($diff && $diff != '-') {
+			$diffArray = explode(',', $diff);
+			$starAuto = $starDemon = 0;
+			
+			foreach($diffArray AS &$diffEntry) {
+				switch($diffEntry) {
+					case -1:
+						$diffParams[] = "starDifficulty / difficultyDenominator < 0.5";
+						
+						break;
+					case -3:
+						$diffParams[] = "starAuto = 1";
+						
+						break;
+					case -2:
+						$demonDiffs = [0, 3, 4, 0, 5, 6];
+						$demonFilter = $query["demonFilter"] ? explode(',', Escape::multiple_ids(urldecode($query["demonFilter"]))) : [];
+						
+						foreach($demonFilter AS &$demonDiff) $demonParams[] = "starDemonDiff = ".($demonDiffs[$demonDiff] ?: 0);
+						
+						$diffParams[] = "starDemon = 1".(!empty($demonParams) ? ' AND ('.implode(" OR ", $demonParams).')' : '');
+						
+						break;
+					default:
+						$diffParams[] = "starAuto = 0 AND starDemon = 0 AND starDifficulty / difficultyDenominator >= ".((int)$diffEntry - 0.5)." AND starDifficulty / difficultyDenominator < ".((int)$diffEntry + 0.5);
+						break;
+				}
+			}
+		}
+		$diffFilter = implode(") OR (", $diffParams);
+		if(!empty($diffFilter)) $filters[] = '('.$diffFilter.')';
+		
+		if($addSearchFilter) $filters[] = "levelName LIKE '%".$str."%'";
+		
+		return [
+			'filters' => $filters,
+			'type' => $type
+		];
 	}
 	
 	/*
@@ -2823,7 +2927,7 @@ class Library {
 		$listsCount = $listsCount->fetchColumn();
 		
 		foreach($lists AS $listKey => $list) {
-			$addDownload = Library::addDownloadToList($person, $list['listID']);
+			$addDownload = self::addDownloadToList($person, $list['listID']);
 			if($addDownload) $lists[$listKey]['downloads']++;
 		}
 		
@@ -2888,7 +2992,7 @@ class Library {
 		$accountID = $person['accountID'];
 		
 		if($listID != 0) {
-			$list = Library::getListByID($listID);
+			$list = self::getListByID($listID);
 			if(!$list || $list['accountID'] != $accountID) return false;
 			
 			$updateList = $db->prepare('UPDATE lists SET listDesc = :listDesc, listVersion = listVersion + 1, listlevels = :listlevels, starDifficulty = :difficulty, original = :original, unlisted = :unlisted, updateDate = :timestamp WHERE listID = :listID');
