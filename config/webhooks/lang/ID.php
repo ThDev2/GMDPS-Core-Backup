@@ -2,17 +2,17 @@
 /*
 	Welcome to webhooks translation file!
 	You're currently at Indonesian (Bahasa Indonesia) language
-	Credits: IHNGEYMING & YeahhColix
+	Credits: IHNGEYMING & YeahhColix Modified By Fless
 	
 	If you see array instead of simple string, that means you can add as many variations of translation as you want and they will be picked randomly
 */
-$webhookLang['rateSuccessTitle'] = ['Level baru telah diberi peringkat!', 'Level yang diberi peringkat baru!', 'Seseorang memberi peringkat pada suatu level!']; // This one is array
-$webhookLang['rateSuccessTitleDM'] = ['Level Anda telah dinilai!', 'Seseorang menilai level Anda!'];
+$webhookLang['rateSuccessTitle'] = ['Level baru telah diberi peringkat!', 'Level yang diberi pembaruan rate!', 'Seseorang memberi rate pada suatu level!']; // This one is array
+$webhookLang['rateSuccessTitleDM'] = ['Level Anda telah dirate!', 'Seseorang menilai level Anda!'];
 $webhookLang['rateSuccessDesc'] = '%1$s memberi nilai pada sebuah level!'; // And this one is string
 $webhookLang['rateSuccessDescDM'] = '%1$s menilai level Anda! %2$s';
-$webhookLang['rateFailTitle'] = ['Level belum diberi peringkat!', 'Seseorang tidak diberi peringkat pada level!'];
-$webhookLang['rateFailTitleDM'] = ['Level Anda belum diberi peringkat!', 'Seseorang tidak memberi peringkat pada level Anda!'];
-$webhookLang['rateFailDesc'] = '%1$s tidak memberi peringkat pada satu level!';
+$webhookLang['rateFailTitle'] = ['Level belum diberi peringkat!', 'Seseorang tidak diberi rate pada level!'];
+$webhookLang['rateFailTitleDM'] = ['Level Anda belum diberi rate!', 'Seseorang tidak memberi peringkat pada level Anda!'];
+$webhookLang['rateFailDesc'] = '%1$s tidak memberi rate pada satu level!';
 $webhookLang['rateFailDescDM'] = '%1$s menghapus nilai level Anda! %2$s';
 
 $webhookLang['levelTitle'] = 'Level';
@@ -26,7 +26,7 @@ $webhookLang['difficultyDescMoon0'] = '%1$s, %2$s bulan'; // Auto, 1 moon (Platf
 $webhookLang['difficultyDescMoon1'] = '%1$s, %2$s bulan'; // Easy, 2 moons (Platformer)
 $webhookLang['difficultyDescMoon2'] = '%1$s, %2$s bulan'; // Hard, 5 moons (Platformer)
 $webhookLang['statsTitle'] = 'Statistik';
-$webhookLang['requestedTitle'] = 'Pencipta meminta';
+$webhookLang['requestedTitle'] = 'Rikues Kreator';
 $webhookLang['requestedDesc0'] = '%1$s bintang'; // 1 star
 $webhookLang['requestedDesc1'] = '%1$s bintang'; // 2 stars
 $webhookLang['requestedDesc2'] = '%1$s bintang'; // 5 stars
@@ -35,7 +35,7 @@ $webhookLang['requestedDescMoon1'] = '%1$s bulan'; // 2 moons (Platformer)
 $webhookLang['requestedDescMoon2'] = '%1$s bulan'; // 5 moons (Platformer)
 $webhookLang['descTitle'] = 'Deskripsi';
 $webhookLang['descDesc'] = '*Tidak ada deskripsi*';
-$webhookLang['footer'] = '%1$s, terima kasih sudah bermain!';
+$webhookLang['footer'] = '%1$s, makasih udah baca!';
 
 $webhookLang['suggestTitle'] = ['Periksa level ini!', 'Level disarankan!', 'Seseorang menyarankan level!'];
 $webhookLang['suggestDesc'] = '%1$s menyarankan level untuk dinilai!';
@@ -86,21 +86,21 @@ $webhookLang['playerTypeName0'] = 'ID Akun';
 $webhookLang['playerTypeName1'] = 'ID Pengguna';
 $webhookLang['playerTypeName2'] = 'alamat IP';
 
-$webhookLang['dailyTitle'] = 'Level harian baru!';
+$webhookLang['dailyTitle'] = 'Level harian daily baru!';
 $webhookLang['dailyTitleDM'] = 'Level Anda setiap hari!';
 $webhookLang['dailyDesc'] = 'Level ini berlaku setiap hari sekarang!';
 $webhookLang['dailyDescDM'] = 'Level Anda menjadi setiap hari! %1$s';
-$webhookLang['weeklyTitle'] = 'Level mingguan baru!';
+$webhookLang['weeklyTitle'] = 'Level ahad weekly terbaru!';
 $webhookLang['weeklyTitleDM'] = 'Level Anda mingguan!';
 $webhookLang['weeklyDesc'] = 'Level ini mingguan sekarang!';
 $webhookLang['weeklyDescDM'] = 'Level Anda menjadi mingguan! %1$s';
-$webhookLang['eventTitle'] = 'Tingkat acara baru!';
-$webhookLang['eventTitleDM'] = 'Level Anda adalah level acara!';
-$webhookLang['eventDesc'] = 'Level ini adalah level acara sekarang!';
-$webhookLang['eventDescDM'] = 'Level Anda digunakan dalam acara! %1$s';
+$webhookLang['eventTitle'] = 'Level Event terbaru!';
+$webhookLang['eventTitleDM'] = 'Level Anda adalah level event!';
+$webhookLang['eventDesc'] = 'Level ini adalah level event sekarang!';
+$webhookLang['eventDescDM'] = 'Level Anda digunakan dalam event! %1$s';
 
-$webhookLang['logsRegisterTitle'] = 'Akun baru!';
-$webhookLang['logsRegisterDesc'] = 'Seseorang mendaftar akun baru!';
+$webhookLang['logsRegisterTitle'] = 'Akun baru FrGDPS!';
+$webhookLang['logsRegisterDesc'] = 'Seseorang mendaftar akun baru cuy!';
 $webhookLang['logsUsernameField'] = 'Player\'s username';
 $webhookLang['logsPlayerIDField'] = 'Player\'s ID';
 $webhookLang['logsRegisterTimeField'] = 'Tanggal daftar';
@@ -108,11 +108,11 @@ $webhookLang['logsIsActivatedField'] = 'Sudah diaktifkan?';
 $webhookLang['logsRegisterYes'] = 'Iya';
 $webhookLang['logsRegisterNo'] = 'Tidak';
 
-$webhookLang['logsLevelDeletedTitle'] = 'Level was deleted!';
-$webhookLang['logsLevelDeletedDesc'] = 'Someone deleted level!';
-$webhookLang['logsLevelChangedTitle'] = 'Level was changed!';
+$webhookLang['logsLevelDeletedTitle'] = 'Level udah dihapus!';
+$webhookLang['logsLevelDeletedDesc'] = 'Seseorang menghapus level!';
+$webhookLang['logsLevelChangedTitle'] = 'Level udah diubah!';
 $webhookLang['logsLevelChangedDesc'] = 'Someone changed level!';
-$webhookLang['logsLevelUploadedTitle'] = 'Level was uploaded!';
+$webhookLang['logsLevelUploadedTitle'] = 'Level udah diupload!';
 $webhookLang['logsLevelUploadedDesc'] = 'Someone uploaded a level!';
 $webhookLang['logsLevelChangeNameValue'] = 'Old name:'.PHP_EOL.'%1$s'.PHP_EOL.'New name:'.PHP_EOL.'%2$s';
 $webhookLang['logsLevelChangeExtIDValue'] = 'Old author:'.PHP_EOL.'%1$s'.PHP_EOL.'New author:'.PHP_EOL.'%2$s';
@@ -138,10 +138,10 @@ $webhookLang['logsLevelChangeUpdateLockedField'] = 'Updating lock status was cha
 $webhookLang['logsLevelChangeCommentLockedField'] = 'Commenting lock status was changed';
 $webhookLang['logsLevelChangeWhoField'] = 'Who changed level?';
 
-$webhookLang['songTitle'] = 'Lagu';
-$webhookLang['levelIsPublic'] = 'Level adalah publik';
-$webhookLang['levelOnlyForFriends'] = 'Level hanya untuk teman';
-$webhookLang['levelIsUnlisted'] = 'Level tidak terdaftar';
+$webhookLang['songTitle'] = 'Lagunya';
+$webhookLang['levelIsPublic'] = 'Levelnya dikasih publik';
+$webhookLang['levelOnlyForFriends'] = 'Levelnya buat temen doang';
+$webhookLang['levelIsUnlisted'] = 'Level unlisted shhh';
 $webhookLang['unlistedTitle'] = 'Privasi level';
 
 $webhookLang['logsAccountChangeWhoField'] = 'Siapa ganti akun?';
@@ -231,10 +231,10 @@ $webhookLang['logsModChangedDesc'] = 'Someone changed moderator!';
 $webhookLang['logsModChangeRoleField'] = 'Role was changed';
 $webhookLang['logsModChangeRoleValue'] = 'Old role:'.PHP_EOL.'`%1$s`'.PHP_EOL.'New role:'.PHP_EOL.'`%2$s`';
 
-$webhookLang['logsGauntletChangeWhoField'] = 'Who changed Gauntlet?';
-$webhookLang['logsGauntletDeletedTitle'] = 'Gauntlet was deleted!';
+$webhookLang['logsGauntletChangeWhoField'] = 'Who ubah tab Gauntlet?';
+$webhookLang['logsGauntletDeletedTitle'] = 'Gauntlet udah dihapus!';
 $webhookLang['logsGauntletDeletedDesc'] = 'Someone deleted Gauntlet!';
-$webhookLang['logsGauntletCreatedTitle'] = 'Gauntlet was created!';
+$webhookLang['logsGauntletCreatedTitle'] = 'Gauntlet udah dibikin wowowo!';
 $webhookLang['logsGauntletCreatedDesc'] = 'Someone created Gauntlet!';
 $webhookLang['gauntletNameField'] = 'Gauntlet name';
 $webhookLang['level1Field'] = 'First level';
