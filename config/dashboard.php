@@ -1,16 +1,16 @@
 <?php
-$installed = false; // DON'T CHANGE IT! It changes automatically
+$installed = true; // Like i said, it changed!
 
-$gdps = "GDPS"; // Used to title and download
+$gdps = "FrGDPS"; // Used to title and download
 $lrEnabled = 1; // 1 = Level reupload enabled, 0 = disabled
 $msgEnabled = 1; // 1 = Messenger enabled, 0 = disabled
 $clansEnabled = 1; // 1 = Clans enabled, 0 = disabled
 $songEnabled = 12; // 0 = Song reupload disabled, add 1 to enable song file reupload, add 2 to enable song link reupload
 $sfxEnabled = 1; // 0 = SFX upload disabled, 1 = enabled
 $convertEnabled = 1; // 1 = Convert SFX to OGG enabled, 0 = disabled
-$songSize = 8; // Max song size in megabytes
+$songSize = 9; // Max song size in megabytes
 $sfxSize = 4.5; // Max SFX size in megabytes
-$timeType = 1; // How time will show in-game, 0 - default Cvolton time, 1 - Dashboard-like time, 2 - RobTop-like time
+$timeType = 2; // How time will show in-game, 0 - default Cvolton time, 1 - Dashboard-like time, 2 - RobTop-like time
 $dashboardIcon = '/dashboard/icon.png'; // Icon at the top left of dashboard, can be link
 $dashboardFavicon = '/dashboard/icon.png'; // Icon in browser's tab, can be link
 $preenableSongs = true; // true = songs are enabled when reuploading, false = song must be enabled through dashboard/stats/disabledSongsList.php in order to use it
@@ -21,7 +21,7 @@ $preenableSFXs = true; // true = SFXs are enabled when reuploading, false = SFX 
 
 $pc = '';
 $mac = '';
-$android = '';
+$android = 'https://fless.netlify.app/download';
 $ios = '';
 
 // Launcher executable names (like "launcher.exe"), place them to dashboard/download folder
@@ -34,9 +34,9 @@ $iosLauncher = "";
 // Footer socials settings, leave empty to disable
 
 $vk = ''; // Link to your VK page
-$discord = ''; // Link to your Discord server
+$discord = 'https://discord.gg/YyeZ2Sxjgf'; // Link to your Discord server
 $twitter = ''; // Link to your Twitter/X page
-$youtube = ''; // Link to your YouTube channel
+$youtube = 'https://youtube.com/@ameliaptz?si=fchOnicvWRZkF8rW'; // Link to your YouTube channel
 $twitch = ''; // Link to your Twitch channel
 
 // Third-party resourses, fill it if you use something (mods, textures, etc). Syntax of this thing is: array('AVATAR', 'USERNAME', 'SOCIAL OF THIS USER', 'What this person did (optionally)');
